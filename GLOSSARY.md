@@ -1,4 +1,4 @@
-# Gut Coach
+# Levaina
 
 An AI coach that helps people with digestive problems find foods that agree with them and reach a healthy weight, by remembering their situation and working from it over time.
 

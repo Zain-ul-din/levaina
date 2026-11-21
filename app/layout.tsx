@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { APP_DESCRIPTION, APP_NAME, APP_TITLE } from "@/lib/brand/brand";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -29,8 +30,9 @@ const satoshi = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Gut Coach",
-  description: "Chat about your gut and weight goals and build a plan that fits you.",
+  title: APP_TITLE,
+  description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
 };
 
 export const viewport: Viewport = {
