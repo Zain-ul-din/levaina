@@ -2,6 +2,7 @@ import {
   MessageScroller,
   MessageScrollerButton,
   MessageScrollerContent,
+  MessageScrollerFade,
   MessageScrollerItem,
   MessageScrollerProvider,
   MessageScrollerViewport,
@@ -45,6 +46,7 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
             {children}
           </MessageScrollerContent>
         </MessageScrollerViewport>
+        <MessageScrollerFade />
         <MessageScrollerButton />
       </MessageScroller>
     </MessageScrollerProvider>

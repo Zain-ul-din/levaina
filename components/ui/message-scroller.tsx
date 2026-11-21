@@ -42,7 +42,7 @@ function MessageScrollerViewport({
     <MessageScrollerPrimitive.Viewport
       data-slot="message-scroller-viewport"
       className={cn(
-        "size-full min-h-0 min-w-0 scroll-fade-b scrollbar-subtle overflow-y-auto overscroll-contain contain-content data-pending-scroll:invisible",
+        "size-full min-h-0 min-w-0 scrollbar-subtle overflow-y-auto overscroll-contain contain-content data-pending-scroll:invisible",
         className
       )}
       {...props}
@@ -118,7 +118,28 @@ function MessageScrollerButton({
   )
 }
 
+/**
+ * Bottom fade drawn as an overlay, shown only when more content is below.
+ * Replaces the `scroll-fade-b` mask: masking the viewport forces Chrome to render
+ * all text in it with grayscale antialiasing, which looks heavier and uneven.
+ */
+function MessageScrollerFade({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="message-scroller-fade"
+      aria-hidden="true"
+      className={cn(
+        // right-2.5 leaves the scrollbar uncovered; scrollable~=end is set by the scroller root.
+        "pointer-events-none absolute inset-x-0 right-2.5 bottom-0 h-10 bg-linear-to-t from-background to-transparent opacity-0 transition-opacity duration-200 group-data-[scrollable~=end]/message-scroller:opacity-100",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 export {
+  MessageScrollerFade,
   MessageScrollerProvider,
   MessageScroller,
   MessageScrollerViewport,
