@@ -10,6 +10,10 @@ type AssistantMessageProps = {
 
 /** No bubble: replies read like a page, which suits long explanations. */
 export function AssistantMessage({ message, isStreaming }: AssistantMessageProps) {
+  // The nth reasoning part pairs with the nth recorded duration.
+  const durations = message.metadata?.reasoningDurations ?? [];
+  let reasoningIndex = 0;
+
   return (
     <Message align="start">
       <MessageContent>
@@ -17,8 +21,10 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
           <MessagePart
             key={`${message.id}-${index}`}
             part={part}
-            metadata={message.metadata}
             isStreaming={isStreaming}
+            reasoningDurationMs={
+              part.type === "reasoning" ? durations[reasoningIndex++] : undefined
+            }
           />
         ))}
 

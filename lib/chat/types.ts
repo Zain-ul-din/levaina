@@ -1,12 +1,25 @@
-import type { UIMessage } from "ai";
+import type { MemoryTools } from "@/lib/ai/tools/memory-tools";
+import type { InferUITools, UIDataTypes, UIMessage } from "ai";
 
 /** Extra data the server attaches to each assistant message. */
 export type ChatMessageMetadata = {
-  /** How long the model spent reasoning, in milliseconds. */
-  reasoningDuration?: number;
+  /**
+   * Milliseconds spent on each reasoning block, in order. A reply with tool calls has
+   * several steps, and each step can reason, so one number per message isn't enough.
+   */
+  reasoningDurations?: number[];
 };
 
+/** Every tool the chat agent can call; drives the typed `tool-*` message parts. */
+export type ChatTools = InferUITools<MemoryTools>;
+
 /** The one message type shared by the API route and the UI. */
-export type ChatUIMessage = UIMessage<ChatMessageMetadata>;
+export type ChatUIMessage = UIMessage<ChatMessageMetadata, UIDataTypes, ChatTools>;
 
 export type ChatMessagePart = ChatUIMessage["parts"][number];
+
+/** Parts produced by the memory tools (saveMemory, updateMemory, forgetMemory). */
+export type MemoryToolPart = Extract<
+  ChatMessagePart,
+  { type: "tool-saveMemory" | "tool-updateMemory" | "tool-forgetMemory" }
+>;

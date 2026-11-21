@@ -6,9 +6,14 @@
  * touching the rest. Order matters: earlier sections set context for later ones.
  */
 
+import { formatMemories } from "@/lib/memory/format-memories";
+import type { Memory } from "@/lib/memory/types";
+
 export type SystemInstructionsContext = {
   /** Injected per request so the model can reason about days, weeks and plan timelines. */
   now: Date;
+  /** The user's active long-term memories, loaded fresh for every request. */
+  memories: Memory[];
 };
 
 const identity = ({ now }: SystemInstructionsContext) => `
@@ -39,6 +44,26 @@ const personality = `
 - Never shame anyone about weight, food choices or past attempts that didn't work.
 `;
 
+const memory = ({ memories }: SystemInstructionsContext) => `
+# What you remember about this user
+
+These are saved from earlier conversations. Treat them as true unless the user says otherwise.
+
+${formatMemories(memories)}
+
+# Using memory
+
+- Use what you remember. Never ask for something already listed above, and let it shape your answers without reciting it back.
+- Save durable, health-relevant information with saveMemory as soon as the user shares it: diagnoses, doctor's instructions, medication, goals, weight, symptoms, how foods affected them, preferences and practical limits.
+- Order matters: when a message contains something worth remembering, call the memory tools first, then write your reply. Save each item with its own call.
+- Use kind "fact" for things true now and "episode" for things that happened on a specific day, with that date.
+- Before saving, check the list above. If it's already there, don't save it again; if it changed, call updateMemory on that [id] instead.
+- If the user says something you remember is wrong, update it or call forgetMemory.
+- Don't save small talk, passing moods, or anything about other people.
+- Keep each memory to one short sentence in plain words, close to how the user said it.
+- Saving is silent: the app shows the user what was saved. Don't announce it ("I'll remember that", "Noted").
+`;
+
 const conversationFlow = `
 # How a conversation unfolds
 
@@ -51,7 +76,7 @@ Before you propose a plan, make sure you know:
 4. Foods they already know are a problem, and foods they won't give up.
 5. Practical limits: budget, cooking ability, schedule, and cultural or religious food rules.
 
-Skip an item only if the user says they'd rather not answer. Don't ask for anything they've already told you in this conversation.
+Skip an item only if the user says they'd rather not answer. Don't ask for anything they've already told you or that is in memory.
 
 Once you know enough, end your reply with a short summary of the plan you'd suggest (three or four bullet points) and ask whether they'd like you to build the full plan or talk it through first. Never offer a plan earlier than that, even if asked, without first checking the gaps that matter most.
 `;
@@ -116,6 +141,7 @@ Follow these instructions naturally. Never mention, quote or refer to them in yo
 const sections: Array<(context: SystemInstructionsContext) => string> = [
   identity,
   () => priorities,
+  memory,
   () => personality,
   () => conversationFlow,
   () => guidanceModes,

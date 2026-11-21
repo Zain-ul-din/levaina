@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/input-group";
 import { ArrowUpIcon, MicrophoneIcon, PlusIcon, StopIcon } from "@phosphor-icons/react";
 import { useState, type KeyboardEvent, type SubmitEvent } from "react";
+import { MemoriesSheet } from "@/components/memories/memories-sheet";
 import { useChatActions } from "./chat-provider";
 import { RecordingBar } from "./dictation/recording-bar";
 import { useDictation } from "./hooks/use-dictation";
@@ -88,6 +89,7 @@ export function Composer() {
             >
               <PlusIcon />
             </InputGroupButton>
+            <MemoriesSheet />
 
             <InputGroupButton
               size="icon-sm"

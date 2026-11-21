@@ -27,7 +27,8 @@ export function ThinkingLine({ isThinking, durationMs }: ThinkingLineProps) {
         <CheckCircleIcon />
       </TraceIcon>
       <TraceTitle>Thought</TraceTitle>
-      {durationMs !== undefined && (
+      {/* Under 0.1s it would read "0.0s": the block arrived in one burst, not worth a number. */}
+      {durationMs !== undefined && durationMs >= 100 && (
         <TraceDescription>{(durationMs / 1000).toFixed(1)}s</TraceDescription>
       )}
     </TraceLine>
