@@ -8,7 +8,11 @@
  */
 @source "../node_modules/streamdown/dist";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * Dark mode = a .dark class on <html>, set by next-themes: from the user's toggle if they chose,
+ * otherwise from the device setting. Its inline script applies it before first paint (no flash).
+ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
  * Thin, arrow-less scrollbar that stays out of the way:
@@ -58,12 +62,19 @@
   }
 }
 
+/* Short, tight elevation: a crisp lift (2px reach), not a soft blurry glow. Tinted warm, never grey. */
+@theme {
+  --shadow-soft: 0 1px 1px rgb(43 38 32 / 0.05), 0 1px 3px rgb(43 38 32 / 0.07);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  /* Warm bold serif (Fraunces) for headlines and the user's questions. */
+  --font-display: var(--font-fraunces), Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -103,72 +114,87 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.147 0.004 49.25);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.147 0.004 49.25);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.491 0.27 292.581);
-  --primary-foreground: oklch(0.969 0.016 293.756);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0.001 106.424);
-  --muted-foreground: oklch(0.553 0.013 58.071);
-  --accent: oklch(0.97 0.001 106.424);
-  --accent-foreground: oklch(0.216 0.006 56.043);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.923 0.003 48.717);
-  --input: oklch(0.923 0.003 48.717);
-  --ring: oklch(0.709 0.01 56.259);
-  --chart-1: oklch(0.811 0.111 293.571);
-  --chart-2: oklch(0.606 0.25 292.717);
-  --chart-3: oklch(0.541 0.281 293.009);
-  --chart-4: oklch(0.491 0.27 292.581);
-  --chart-5: oklch(0.432 0.232 292.759);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0.001 106.423);
-  --sidebar-foreground: oklch(0.147 0.004 49.25);
-  --sidebar-primary: oklch(0.541 0.281 293.009);
-  --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
-  --sidebar-accent: oklch(0.97 0.001 106.424);
-  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
-  --sidebar-border: oklch(0.923 0.003 48.717);
-  --sidebar-ring: oklch(0.709 0.01 56.259);
+  /*
+   * Miso & Matcha: warm grey-beige page, near-white cards, charcoal-brown ink (never black),
+   * matcha green for actions. Food colours appear only where they mean food.
+   */
+  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --radius: 1rem;
+
+  --background: #f3f0e7;
+  --foreground: #2b2620;
+  --card: #fffdf7;
+  --card-foreground: #2b2620;
+  --popover: #fffdf7;
+  --popover-foreground: #2b2620;
+  --primary: #5e7a2e;
+  --primary-foreground: #fbfcf5;
+  --secondary: #eae5d8;
+  --secondary-foreground: #2b2620;
+  --muted: #eae5d8;
+  --muted-foreground: #7e776b;
+  --accent: #eae5d8;
+  --accent-foreground: #2b2620;
+  --destructive: #c2452d;
+  --border: #e2dccd;
+  --input: #e2dccd;
+  --ring: #b5c48e;
+
+  /* "Saved" tag on memory chips: a soft leaf green. */
+  --saved: #e6edd5;
+  --saved-foreground: #4f6a22;
+
+  /* Food colours (charts, later trackers): protein, carbs, fat, fibre, water. */
+  --chart-1: #ec7a3f;
+  --chart-2: #b3c93a;
+  --chart-3: #f0c03a;
+  --chart-4: #8a5a3b;
+  --chart-5: #6aa6c9;
+
+  --sidebar: #efebe1;
+  --sidebar-foreground: #2b2620;
+  --sidebar-primary: #5e7a2e;
+  --sidebar-primary-foreground: #fbfcf5;
+  --sidebar-accent: #eae5d8;
+  --sidebar-accent-foreground: #2b2620;
+  --sidebar-border: #e2dccd;
+  --sidebar-ring: #b5c48e;
 }
 
+
+
 .dark {
-  --background: oklch(0.147 0.004 49.25);
-  --foreground: oklch(0.985 0.001 106.423);
-  --card: oklch(0.216 0.006 56.043);
-  --card-foreground: oklch(0.985 0.001 106.423);
-  --popover: oklch(0.216 0.006 56.043);
-  --popover-foreground: oklch(0.985 0.001 106.423);
-  --primary: oklch(0.432 0.232 292.759);
-  --primary-foreground: oklch(0.969 0.016 293.756);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.268 0.007 34.298);
-  --muted-foreground: oklch(0.709 0.01 56.259);
-  --accent: oklch(0.268 0.007 34.298);
-  --accent-foreground: oklch(0.985 0.001 106.423);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.553 0.013 58.071);
-  --chart-1: oklch(0.811 0.111 293.571);
-  --chart-2: oklch(0.606 0.25 292.717);
-  --chart-3: oklch(0.541 0.281 293.009);
-  --chart-4: oklch(0.491 0.27 292.581);
-  --chart-5: oklch(0.432 0.232 292.759);
-  --sidebar: oklch(0.216 0.006 56.043);
-  --sidebar-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-primary: oklch(0.606 0.25 292.717);
-  --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
-  --sidebar-accent: oklch(0.268 0.007 34.298);
-  --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.553 0.013 58.071);
+  /* Night: charcoal-olive page, warm dark cards, rice-paper ink, a lighter matcha. */
+  --background: #191814;
+  --foreground: #efebe1;
+  --card: #23211b;
+  --card-foreground: #efebe1;
+  --popover: #23211b;
+  --popover-foreground: #efebe1;
+  --primary: #a9c46e;
+  --primary-foreground: #1b2309;
+  --secondary: #2c2a23;
+  --secondary-foreground: #efebe1;
+  --muted: #2c2a23;
+  --muted-foreground: #a49d8f;
+  --accent: #2c2a23;
+  --accent-foreground: #efebe1;
+  --destructive: #f08a6e;
+  --border: rgb(239 235 225 / 0.09);
+  --input: rgb(239 235 225 / 0.14);
+  --ring: #6f8346;
+
+  --saved: #2b3320;
+  --saved-foreground: #c4da98;
+
+  --sidebar: #1e1d18;
+  --sidebar-foreground: #efebe1;
+  --sidebar-primary: #a9c46e;
+  --sidebar-primary-foreground: #1b2309;
+  --sidebar-accent: #2c2a23;
+  --sidebar-accent-foreground: #efebe1;
+  --sidebar-border: rgb(239 235 225 / 0.09);
+  --sidebar-ring: #6f8346;
 }
 
 @layer base {

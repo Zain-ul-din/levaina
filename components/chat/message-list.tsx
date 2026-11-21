@@ -30,8 +30,9 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
           {/* px-3/py-5 + the item's p-1 = 16px/24px, so text still lines up with the composer. */}
           <MessageScrollerContent className="mx-auto w-full max-w-3xl px-3 py-5">
             {messages.map((message) => (
-              // Items use content-visibility, which clips anything painted outside them.
-              // p-1 leaves room for focus rings and shadows (button ring-3 = 3px).
+              // Items use content-visibility:auto (skips rendering off-screen messages), which clips
+              // anything painted outside them. p-1 (4px) leaves room for focus rings and the short
+              // card shadow (shadow-soft reaches 4px); keep shadows that short or they get cut.
               // User messages are scroll anchors: on send, the scroller pins the new
               // message to the top and the reply streams in below it.
               <MessageScrollerItem
@@ -51,7 +52,8 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
           </MessageScrollerContent>
         </MessageScrollerViewport>
         <MessageScrollerFade />
-        <MessageScrollerButton />
+        {/* A floating white circle like the header buttons, so it reads as UI, not a glyph in the text. */}
+        <MessageScrollerButton className="size-10 rounded-full border-transparent bg-card shadow-soft hover:bg-card" />
       </MessageScroller>
     </MessageScrollerProvider>
   );

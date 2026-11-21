@@ -50,10 +50,9 @@ export function MemoryPart({ part }: MemoryPartProps) {
   }
 
   return (
-    // Top-aligned so the icon and Undo stay on the first line when the text expands.
-    // Icon (16px) + mt-1 and text (20px) + py-0.5 both centre on Undo's 24px height.
+    // Top-aligned so Undo stays on the first line when the text expands (text py-0.5 centres on Undo's 24px).
+    // The "Saved" pill already says what happened; an icon next to it would say it twice.
     <Marker className="items-start">
-      <MarkerIcon className="mt-1">{label.icon}</MarkerIcon>
       <ExpandableText label={label.done} text={output.content} />
       {/* Only a fresh save can be undone in one step; updates and removals are reversible by asking. */}
       {part.type === "tool-saveMemory" && <UndoSave memoryId={output.id} />}
@@ -79,7 +78,10 @@ function ExpandableText({ label, text }: { label: string; text: string }) {
         expanded ? "wrap-break-word" : "truncate",
       )}
     >
-      <span className="font-medium">{label}:</span> {text}
+      <span className="mr-2 inline-block rounded-full bg-(--saved) px-2 py-0.5 text-xs font-medium text-(--saved-foreground)">
+        {label}
+      </span>
+      {text}
     </button>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import type { ChatUIMessage } from "@/lib/chat/types";
-import { createContext, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useMemo, type ReactNode } from "react";
 import { useRequiredContext } from "@/lib/hooks/use-require-context";
 
 type UseChatResult = ReturnType<typeof useChat<ChatUIMessage>>;
@@ -16,6 +16,10 @@ type ChatActions = Pick<
   canSend: boolean;
   /** True from the moment a message is sent until the reply finishes. */
   isBusy: boolean;
+  /** Flips once per conversation, so subscribing to it doesn't re-render on every chunk. */
+  hasMessages: boolean;
+  /** Stops any reply and clears the conversation. Memories are kept: a new chat still knows you. */
+  startNewChat: () => void;
 };
 
 /** Changes on every streamed chunk: only message renderers should subscribe. */
@@ -29,15 +33,21 @@ const ChatMessagesContext = createContext<ChatMessages | null>(null);
  * so a component that only sends messages doesn't re-render while a reply streams.
  */
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const { messages, sendMessage, stop, regenerate, status, error } =
+  const { messages, setMessages, sendMessage, stop, regenerate, status, error } =
     useChat<ChatUIMessage>();
   const canSend = status === "ready" || status === "error";
   const isBusy = status === "submitted" || status === "streaming";
+  const hasMessages = messages.length > 0;
 
-  // The functions are stable, so this object only changes when status or error changes.
+  const startNewChat = useCallback(() => {
+    void stop();
+    setMessages([]);
+  }, [stop, setMessages]);
+
+  // The functions are stable, so this object only changes when status, error or hasMessages change.
   const actions = useMemo<ChatActions>(
-    () => ({ sendMessage, stop, regenerate, status, error, canSend, isBusy }),
-    [sendMessage, stop, regenerate, status, error, canSend, isBusy],
+    () => ({ sendMessage, stop, regenerate, status, error, canSend, isBusy, hasMessages, startNewChat }),
+    [sendMessage, stop, regenerate, status, error, canSend, isBusy, hasMessages, startNewChat],
   );
 
   return (

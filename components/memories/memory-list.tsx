@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { CATEGORY_LABELS } from "@/lib/memory/category-labels";
+import { CATEGORY_EMOJI, CATEGORY_LABELS } from "@/lib/memory/category-labels";
 import { MEMORY_CATEGORIES, type Memory } from "@/lib/memory/types";
 import { XIcon } from "@phosphor-icons/react";
 
@@ -35,9 +35,9 @@ export function MemoryList({ memories, onForget }: MemoryListProps) {
   })).filter((group) => group.items.length > 0);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-7">
       {factGroups.map(({ category, items }) => (
-        <MemorySection key={category} title={CATEGORY_LABELS[category]}>
+        <MemorySection key={category} emoji={CATEGORY_EMOJI[category]} title={CATEGORY_LABELS[category]}>
           {items.map((memory) => (
             <MemoryRow key={memory.id} memory={memory} onForget={onForget} />
           ))}
@@ -45,7 +45,7 @@ export function MemoryList({ memories, onForget }: MemoryListProps) {
       ))}
 
       {episodes.length > 0 && (
-        <MemorySection title="Recent days">
+        <MemorySection emoji="📅" title="Recent days">
           {episodes.map((memory) => (
             <MemoryRow
               key={memory.id}
@@ -60,11 +60,17 @@ export function MemoryList({ memories, onForget }: MemoryListProps) {
   );
 }
 
-function MemorySection({ title, children }: { title: string; children: React.ReactNode }) {
+type MemorySectionProps = { emoji: string; title: string; children: React.ReactNode };
+
+/** A titled group of memories, held in one soft card with dividers between rows. */
+function MemorySection({ emoji, title, children }: MemorySectionProps) {
   return (
-    <section className="flex flex-col gap-1">
-      <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
-      <ul className="flex flex-col">{children}</ul>
+    <section className="flex flex-col gap-2">
+      <h3 className="flex items-center gap-2 px-1 text-[0.95rem] font-semibold">
+        <span aria-hidden="true">{emoji}</span>
+        {title}
+      </h3>
+      <ul className="flex flex-col divide-y rounded-2xl bg-card px-4 shadow-soft">{children}</ul>
     </section>
   );
 }
@@ -77,9 +83,9 @@ type MemoryRowProps = {
 
 function MemoryRow({ memory, onForget, date }: MemoryRowProps) {
   return (
-    <li className="group/memory -mx-2 flex items-start gap-3 rounded-lg px-2 py-1.5 hover:bg-muted">
+    <li className="group/memory flex items-start gap-3 py-3">
       {date && <span className="w-12 shrink-0 pt-px text-xs text-muted-foreground tabular-nums">{date}</span>}
-      <span className="min-w-0 flex-1 leading-relaxed">{memory.content}</span>
+      <span className="min-w-0 flex-1 text-[0.95rem] leading-relaxed">{memory.content}</span>
       <Button
         variant="ghost"
         size="icon-xs"

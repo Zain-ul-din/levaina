@@ -1,47 +1,48 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { useChatActions } from "./chat-provider";
 
-/** Real first messages a person with gut issues would send; tapping one sends it. */
+/**
+ * Real first messages a person with gut issues would send; tapping one sends it.
+ * Emoji give each a face at a glance, the way food apps label things.
+ */
 const STARTER_PROMPTS = [
-  "My doctor told me to try a carnivore diet",
-  "I get bloated after most meals",
-  "I want to gain weight without upsetting my gut",
+  { emoji: "🥩", message: "My doctor told me to try a carnivore diet" },
+  { emoji: "🫧", message: "I get bloated after most meals" },
+  { emoji: "⚖️", message: "I want to gain weight without upsetting my gut" },
 ] as const;
 
 export function ChatEmptyState() {
   const { sendMessage, canSend } = useChatActions();
 
   return (
-    <Empty className="mx-auto w-full max-w-3xl flex-1 px-4">
-      <EmptyHeader>
-        <EmptyTitle className="text-2xl">What&apos;s going on with your gut?</EmptyTitle>
-        <EmptyDescription>
-          Tell me your symptoms, what your doctor said and your weight goal. We&apos;ll
-          work out a plan together.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent className="flex-col items-stretch gap-2">
-        {STARTER_PROMPTS.map((prompt) => (
-          <Button
-            key={prompt}
-            variant="outline"
-            className="h-auto justify-start py-2.5 text-left whitespace-normal"
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-6">
+      <div className="flex flex-col gap-3 text-center">
+        <h1 className="font-display text-[2.1rem] leading-[1.1] font-semibold tracking-tight text-balance">
+          What&apos;s going on with your gut?
+        </h1>
+        <p className="text-[0.95rem] leading-relaxed text-pretty text-muted-foreground">
+          Tell me your symptoms, what your doctor said and your weight goal. We&apos;ll work out a
+          plan together.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        {STARTER_PROMPTS.map(({ emoji, message }) => (
+          <button
+            key={message}
+            type="button"
             disabled={!canSend}
-            onClick={() => sendMessage({ text: prompt })}
+            onClick={() => sendMessage({ text: message })}
+            className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3.5 text-left text-[0.95rem] font-medium shadow-soft transition-transform outline-none hover:-translate-y-px focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 disabled:opacity-60"
           >
-            {prompt}
-          </Button>
+            <span aria-hidden="true" className="text-xl leading-none">
+              {emoji}
+            </span>
+            {message}
+          </button>
         ))}
-      </EmptyContent>
-    </Empty>
+      </div>
+    </div>
   );
 }

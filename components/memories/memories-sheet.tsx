@@ -1,20 +1,21 @@
 "use client";
 
-import { InputGroupButton } from "@/components/ui/input-group";
+import { FloatingIconButton } from "@/components/brand/floating-icon-button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { TraceLine, TraceTitle } from "@/components/ui/trace";
-import { BookmarksSimpleIcon } from "@phosphor-icons/react";
+import { BookmarksSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { MemoryList } from "./memory-list";
 import { useMemories } from "./use-memories";
 
-/** Composer button that opens everything the coach remembers about you. */
+/** Header button that opens everything the coach remembers about you. */
 export function MemoriesSheet() {
   const [open, setOpen] = useState(false);
   const { memories, status, error, load, forget } = useMemories();
@@ -26,21 +27,22 @@ export function MemoriesSheet() {
 
   return (
     <>
-      <InputGroupButton
-        size="icon-sm"
-        variant="outline"
-        className="rounded-full"
-        aria-label="What the coach remembers"
-        onClick={() => handleOpenChange(true)}
-      >
+      <FloatingIconButton aria-label="What the coach remembers" onClick={() => handleOpenChange(true)}>
         <BookmarksSimpleIcon />
-      </InputGroupButton>
+      </FloatingIconButton>
 
       <Sheet open={open} onOpenChange={handleOpenChange}>
         {/* data-[side=right]: prefix needed to beat the sheet's own data-[side=right]:w-3/4 */}
-        <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
-          <SheetHeader className="border-b">
-            <SheetTitle>What I remember</SheetTitle>
+        <SheetContent
+          showCloseButton={false}
+          className="gap-0 bg-background data-[side=right]:w-full data-[side=right]:sm:max-w-md"
+        >
+          <SheetHeader className="pt-[max(1.25rem,env(safe-area-inset-top))]">
+            {/* Same floating round button as the header, instead of the sheet's tiny default ✕. */}
+            <SheetClose render={<FloatingIconButton aria-label="Close" className="mb-3 self-end" />}>
+              <XIcon />
+            </SheetClose>
+            <SheetTitle className="font-display text-2xl font-semibold tracking-tight">What I remember</SheetTitle>
             <SheetDescription>
               Saved from your chats and used in every conversation. Remove anything that&apos;s wrong.
             </SheetDescription>

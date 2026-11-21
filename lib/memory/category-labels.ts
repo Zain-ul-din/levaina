@@ -13,3 +13,17 @@ export const CATEGORY_LABELS: Record<MemoryCategory, string> = {
   constraint: "Practical limits",
   other: "Other",
 };
+
+/** A face for each category, the way food apps label things at a glance. */
+export const CATEGORY_EMOJI: Record<MemoryCategory, string> = {
+  condition: "🩺",
+  doctor_instruction: "👩‍⚕️",
+  medication: "💊",
+  goal: "🎯",
+  body_metric: "⚖️",
+  symptom: "🫧",
+  food_reaction: "🍽️",
+  preference: "💛",
+  constraint: "🧺",
+  other: "📝",
+};
