@@ -9,7 +9,9 @@ type TextPartProps = {
 };
 
 // 17px / 1.65: the most-read text in the app, so it gets the most generous size.
-const PROSE = "text-[1.0625rem] leading-[1.65]";
+// Body text sits at 80% ink so bold labels and headings (full ink) pop without getting heavier.
+const PROSE =
+  "text-[1.0625rem] leading-[1.65] text-foreground/80 [&_[data-streamdown=strong]]:text-foreground [&_h1,&_h2,&_h3,&_h4]:text-foreground";
 
 /**
  * Renders assistant markdown; Streamdown copes with half-written markdown mid-stream.
@@ -30,7 +32,7 @@ export function TextPart({ text, isStreaming }: TextPartProps) {
         // "Your turn": a thin matcha bar (matcha marks things you can do), a little extra space
         // above, and medium weight. Weight alone was too subtle to read as different from advice.
         <div className="mt-2 border-l-2 border-primary/80 pl-4">
-          <Streamdown className={`${PROSE} font-medium`} isAnimating={isStreaming}>
+          <Streamdown className={`${PROSE} font-medium text-foreground`} isAnimating={isStreaming}>
             {ask}
           </Streamdown>
         </div>
