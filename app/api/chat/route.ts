@@ -1,4 +1,5 @@
 import { model } from "@/lib/ai/models";
+import { buildSystemInstructions } from "@/lib/ai/system-instructions";
 import type { ChatMessageMetadata, ChatUIMessage } from "@/lib/chat/types";
 import {
   convertToModelMessages,
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model,
-    instructions: "You are an helpful assistant",
+    instructions: buildSystemInstructions({ now: new Date() }),
     messages: await convertToModelMessages(messages),
   });
 
