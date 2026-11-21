@@ -2,27 +2,55 @@
 
 import { useChat } from "@ai-sdk/react";
 import type { ChatUIMessage } from "@/lib/chat/types";
-import { createContext, use, type ReactNode } from "react";
+import { createContext, use, useMemo, type ReactNode } from "react";
 
-type ChatContextValue = ReturnType<typeof useChat<ChatUIMessage>> & {
+type UseChatResult = ReturnType<typeof useChat<ChatUIMessage>>;
+
+/** Things that rarely change: safe for inputs and buttons to subscribe to. */
+type ChatActions = Pick<UseChatResult, "sendMessage" | "stop" | "status"> & {
   /** True when a new message may be sent. "error" counts, so one failed request can't lock the input. */
   canSend: boolean;
 };
 
-const ChatContext = createContext<ChatContextValue | null>(null);
+/** Changes on every streamed chunk: only message renderers should subscribe. */
+type ChatMessages = UseChatResult["messages"];
 
-/** Owns the single useChat instance; any component below can read it with useChatContext(). */
+const ChatActionsContext = createContext<ChatActions | null>(null);
+const ChatMessagesContext = createContext<ChatMessages | null>(null);
+
+/**
+ * Owns the single useChat instance and splits it into two contexts,
+ * so a component that only sends messages doesn't re-render while a reply streams.
+ */
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const chat = useChat<ChatUIMessage>();
-  const canSend = chat.status === "ready" || chat.status === "error";
+  const { messages, sendMessage, stop, status } = useChat<ChatUIMessage>();
+  const canSend = status === "ready" || status === "error";
 
-  return <ChatContext value={{ ...chat, canSend }}>{children}</ChatContext>;
+  // sendMessage/stop are stable, so this object only changes when status changes.
+  const actions = useMemo<ChatActions>(
+    () => ({ sendMessage, stop, status, canSend }),
+    [sendMessage, stop, status, canSend],
+  );
+
+  return (
+    <ChatActionsContext value={actions}>
+      <ChatMessagesContext value={messages}>{children}</ChatMessagesContext>
+    </ChatActionsContext>
+  );
 }
 
-export function useChatContext() {
-  const context = use(ChatContext);
-  if (!context) {
-    throw new Error("useChatContext must be used inside <ChatProvider>");
+export function useChatActions() {
+  return useRequiredContext(ChatActionsContext, "useChatActions");
+}
+
+export function useChatMessages() {
+  return useRequiredContext(ChatMessagesContext, "useChatMessages");
+}
+
+function useRequiredContext<T>(context: React.Context<T | null>, hookName: string): T {
+  const value = use(context);
+  if (value === null) {
+    throw new Error(`${hookName} must be used inside <ChatProvider>`);
   }
-  return context;
+  return value;
 }

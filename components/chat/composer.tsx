@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/input-group";
 import { ArrowUpIcon, PlusIcon } from "@phosphor-icons/react";
 import { useState, type SubmitEvent } from "react";
-import { useChatContext } from "./chat-provider";
+import { useChatActions } from "./chat-provider";
 
 /** Draft text stays local UI state; sending goes straight to the shared chat. */
 export function Composer() {
-  const { canSend, sendMessage } = useChatContext();
+  const { canSend, sendMessage } = useChatActions();
   const [text, setText] = useState("");
   const trimmed = text.trim();
   const isSendable = canSend && trimmed.length > 0;
