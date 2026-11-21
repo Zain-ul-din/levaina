@@ -3,11 +3,8 @@ import {
   TraceCollapsible,
   TraceCollapsibleContent,
   TraceCollapsibleTrigger,
-  TraceIcon,
-  TraceLine,
-  TraceTitle,
 } from "@/components/ui/trace";
-import { CheckCircleIcon, SpinnerIcon } from "@phosphor-icons/react";
+import { ThinkingLine } from "./thinking-line";
 
 type ReasoningPartProps = {
   text: string;
@@ -17,23 +14,15 @@ type ReasoningPartProps = {
 
 export function ReasoningPart({ text, isStreaming, durationMs }: ReasoningPartProps) {
   return (
-    <Trace className="mb-2">
+    <Trace>
       <TraceCollapsible>
         <TraceCollapsibleTrigger>
-          <TraceLine>
-            <TraceIcon>
-              {isStreaming ? <SpinnerIcon className="animate-spin" /> : <CheckCircleIcon />}
-            </TraceIcon>
-            <TraceTitle>{isStreaming ? "Thinking..." : formatThoughtFor(durationMs)}</TraceTitle>
-          </TraceLine>
+          <ThinkingLine isThinking={isStreaming} durationMs={durationMs} />
         </TraceCollapsibleTrigger>
-        <TraceCollapsibleContent className="whitespace-pre-wrap">{text}</TraceCollapsibleContent>
+        <TraceCollapsibleContent className="whitespace-pre-wrap">
+          {text}
+        </TraceCollapsibleContent>
       </TraceCollapsible>
     </Trace>
   );
-}
-
-function formatThoughtFor(durationMs?: number) {
-  if (durationMs === undefined) return "Thought";
-  return `Thought for ${(durationMs / 1000).toFixed(1)}s`;
 }

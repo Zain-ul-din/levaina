@@ -1,9 +1,17 @@
-import { BubbleContent } from "@/components/ui/bubble";
+"use client";
+
+import { Streamdown } from "streamdown";
 
 type TextPartProps = {
   text: string;
+  isStreaming: boolean;
 };
 
-export function TextPart({ text }: TextPartProps) {
-  return <BubbleContent className="whitespace-pre-wrap">{text}</BubbleContent>;
+/** Renders assistant markdown; Streamdown copes with half-written markdown mid-stream. */
+export function TextPart({ text, isStreaming }: TextPartProps) {
+  return (
+    <Streamdown className="text-[0.9375rem] leading-7" isAnimating={isStreaming}>
+      {text}
+    </Streamdown>
+  );
 }
