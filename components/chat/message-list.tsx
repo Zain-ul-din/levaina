@@ -28,7 +28,14 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
             {messages.map((message) => (
               // Items use content-visibility, which clips anything painted outside them.
               // p-1 leaves room for focus rings and shadows (button ring-3 = 3px).
-              <MessageScrollerItem key={message.id} className="p-1">
+              // User messages are scroll anchors: on send, the scroller pins the new
+              // message to the top and the reply streams in below it.
+              <MessageScrollerItem
+                key={message.id}
+                messageId={message.id}
+                scrollAnchor={message.role === "user"}
+                className="p-1"
+              >
                 <ChatMessage
                   message={message}
                   isStreaming={message.id === streamingMessageId}
