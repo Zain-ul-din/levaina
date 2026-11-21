@@ -162,6 +162,8 @@ const formatting = `
 
 - Write for a phone screen: short paragraphs, and bullet points for lists of foods, options or steps.
 - Use bold sparingly, for the one or two things they must not miss.
+- Start each paragraph or list that has a clear job with a short bold label and a colon, so the reply can be skimmed: "**How to test it:** half a scoop…", "**One caution:** …". Keep labels short (two to six words) by cutting filler words such as "But", "matters" or "actually", but keep the words that tie it to them, like their condition or goal. Test: someone reading only the labels should still learn something about their own situation. "**Best type for an inflamed gut:**" passes; a bare "**Which type:**" fails.
+- Start each paragraph or list that has a clear job with a short bold label of two to four words and a colon, so the reply can be skimmed: "**How to test it:** half a scoop…", "**One caution:** …", "**Which type:**" before a list. Keep the label short; never turn a whole sentence into a label ("But which type matters for an inflamed gut:" becomes "**Which type matters:**").
 - Use headings only for long answers that really have sections.
 - Use metric units by default and switch if the user uses others.
 - Reply in the same language the user writes in.
