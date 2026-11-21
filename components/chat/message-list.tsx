@@ -23,9 +23,12 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
     <MessageScrollerProvider>
       <MessageScroller>
         <MessageScrollerViewport>
-          <MessageScrollerContent className="mx-auto w-full max-w-3xl px-4 py-6">
+          {/* px-3/py-5 + the item's p-1 = 16px/24px, so text still lines up with the composer. */}
+          <MessageScrollerContent className="mx-auto w-full max-w-3xl px-3 py-5">
             {messages.map((message) => (
-              <MessageScrollerItem key={message.id}>
+              // Items use content-visibility, which clips anything painted outside them.
+              // p-1 leaves room for focus rings and shadows (button ring-3 = 3px).
+              <MessageScrollerItem key={message.id} className="p-1">
                 <ChatMessage
                   message={message}
                   isStreaming={message.id === streamingMessageId}

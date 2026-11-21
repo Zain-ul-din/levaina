@@ -22,9 +22,10 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
           />
         ))}
 
-        {/* Copying half a reply is useless, so actions appear once it's finished. */}
+        {/* Copying half a reply is useless, so actions appear once it's finished.
+            No negative margins: the scroller item clips anything outside its box. */}
         {!isStreaming && (
-          <MessageFooter className="-ml-2 px-0">
+          <MessageFooter className="px-0">
             <CopyMessageButton message={message} />
           </MessageFooter>
         )}
