@@ -44,7 +44,7 @@ export const memoryContentSchema = z
   .trim()
   .min(1)
   .max(500)
-  .describe("One short sentence in plain words, e.g. 'Doctor recommended a carnivore diet for 6 weeks'.");
+  .describe("One short sentence in plain words, e.g. 'Doctor recommended a low-FODMAP diet for 6 weeks'.");
 
 export const newMemorySchema = z.object({
   kind: z.enum(MEMORY_KINDS).describe("fact = true now; episode = something that happened on a date"),

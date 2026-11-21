@@ -4,11 +4,11 @@ How the app looks and sounds. The source of truth for colours is `app/globals.cs
 
 **Name:** **Levaina** (*leh-VAY-nah*). App Store title: *Levaina: Gut & Weight Coach*. Defined once in `lib/brand/brand.ts`.
 
-From French *levain*: the living sourdough culture you feed every day, which ferments and makes bread rise. Your gut flora is a living culture you feed too, and the goal is to rise: gain weight and feel better. The name pairs with the Morning Bowl logo (a sun rising out of a bowl). In copy, the product is "Levaina"; the character inside it is "the coach".
+From French *levain*: the living sourdough culture you feed every day, which ferments and makes bread rise. Your gut flora is a living culture you feed too, and the goal is to rise: feel better, and reach a weight that's right for your body, whether that means gaining, losing or holding steady. The name pairs with the Morning Bowl logo (a sun rising out of a bowl). In copy, the product is "Levaina"; the character inside it is "the coach".
 
 ## The idea
 
-A warm kitchen table, not a clinic. People open this app anxious about food, so everything should feel calm, edible and kind. The logo says it: **a sun rising out of a bowl**, a new day and a warm meal.
+For anyone whose gut affects what and how much they can eat, and who wants to gain, lose or hold their weight without making their gut worse. A warm kitchen table, not a clinic. People open this app anxious about food, so everything should feel calm, edible and kind. The logo says it: **a sun rising out of a bowl**, a new day and a warm meal.
 
 ## Logo: Morning Bowl
 
@@ -77,4 +77,4 @@ The coach sounds like a calm friend who knows nutrition, not a doctor and not a 
 | Memory, remember, forget | Data, profile, delete |
 | Plan | Protocol, regimen, programme |
 | Bloating, loose stools, constipation | Clinical euphemisms or slang |
-| Gain weight, reach your goal | Bulk, cut, "fix" your body |
+| Reach a healthy weight; gain, lose or hold steady | Bulk, cut, burn fat, "fix" your body, beach body |

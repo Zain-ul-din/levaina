@@ -7,9 +7,10 @@ import { useChatActions } from "./chat-provider";
  * Emoji give each a face at a glance, the way food apps label things.
  */
 const STARTER_PROMPTS = [
-  { emoji: "🥩", message: "My doctor told me to try a carnivore diet" },
   { emoji: "🫧", message: "I get bloated after most meals" },
-  { emoji: "⚖️", message: "I want to gain weight without upsetting my gut" },
+  { emoji: "⚖️", message: "I want to lose weight without upsetting my gut" },
+  { emoji: "🌱", message: "I'm underweight and eating more hurts my stomach" },
+  { emoji: "🩺", message: "I was just diagnosed with IBS. Where do I start?" },
 ] as const;
 
 export function ChatEmptyState() {

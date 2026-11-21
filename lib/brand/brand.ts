@@ -1,7 +1,8 @@
 /**
  * The product's name in one place. Levaina, from French "levain": the living sourdough
  * culture you feed daily, which ferments and makes bread rise. Your gut flora is a living
- * culture you feed every day too, and the goal is to rise (gain weight, feel better).
+ * culture you feed every day too, and the goal is to rise: feel better, and reach a weight
+ * that's right for your body, whether that means gaining, losing or holding steady.
  */
 export const APP_NAME = "Levaina";
 
