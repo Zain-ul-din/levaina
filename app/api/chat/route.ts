@@ -1,36 +1,23 @@
-import { model } from "@/lib/ai/models";
-import { buildSystemInstructions } from "@/lib/ai/system-instructions";
+import { createChatAgent } from "@/lib/ai/chat-agent";
 import { resolveTimeZone, type ChatRequestBody } from "@/lib/chat/request";
-import { createMemoryTools } from "@/lib/ai/tools/memory-tools";
 import type { ChatMessageMetadata } from "@/lib/chat/types";
 import { getMemoryStore } from "@/lib/memory/get-memory-store";
 import { getCurrentUserId } from "@/lib/server/current-user";
-import {
-  convertToModelMessages,
-  createUIMessageStreamResponse,
-  isStepCount,
-  streamText,
-  toUIMessageStream,
-} from "ai";
-
-/** Tool call → tool result → more text counts as steps; this caps runaway tool loops. */
-const MAX_STEPS = 5;
+import { convertToModelMessages, createUIMessageStreamResponse, streamText, toUIMessageStream } from "ai";
 
 export async function POST(req: Request) {
   const { messages, timeZone }: ChatRequestBody = await req.json();
 
-  const userId = await getCurrentUserId();
-  const store = getMemoryStore();
-  const tools = createMemoryTools({ store, userId });
-  const memories = await store.listActive(userId);
+  // Server clock (trustworthy) shown in the device's zone (what the user lives in).
+  const { memories, tools, settings } = await createChatAgent({
+    store: getMemoryStore(),
+    userId: await getCurrentUserId(),
+    timeZone: resolveTimeZone(timeZone),
+  });
 
   const result = streamText({
-    model,
-    // Server clock (trustworthy) shown in the device's zone (what the user lives in).
-    instructions: buildSystemInstructions({ now: new Date(), timeZone: resolveTimeZone(timeZone), memories }),
+    ...settings,
     messages: await convertToModelMessages(messages, { tools }),
-    tools,
-    stopWhen: isStepCount(MAX_STEPS),
   });
 
   let reasoningStartedAt = 0;

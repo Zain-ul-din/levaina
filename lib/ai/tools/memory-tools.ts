@@ -56,6 +56,13 @@ export function createMemoryTools({ store, userId }: MemoryToolsOptions) {
           : { error: `Memory ${id} doesn't exist or is no longer active.` };
       },
     }),
+
+    noNewMemory: tool({
+      description:
+        "Call this when the user's latest message has nothing new worth remembering (small talk, a question, something already saved). It does nothing; it records that you checked.",
+      inputSchema: z.object({}),
+      execute: async () => ({ ok: true }),
+    }),
   };
 }
 
