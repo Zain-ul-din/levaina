@@ -9,21 +9,22 @@ import { PendingIndicator } from "./primitives/pending-indicator";
 /** Connects chat state to the list. The only component that re-renders on every streamed chunk. */
 export function MessageListContainer() {
   const messages = useChatMessages();
-  const { status, error } = useChatActions();
+  const { isBusy, error } = useChatActions();
 
   if (messages.length === 0) {
     return <ChatEmptyState />;
   }
 
+  // Use isBusy (submitted OR streaming), not status === "streaming": the reply's first chunk
+  // arrives ~200ms before the status flips, and in that gap it must already count as in progress.
   const lastMessage = messages.at(-1);
-  const streamingMessageId =
-    status === "streaming" && lastMessage?.role === "assistant"
-      ? lastMessage.id
-      : undefined;
+  const replyInProgress = isBusy && lastMessage?.role === "assistant";
+  const streamingMessageId = replyInProgress ? lastMessage.id : undefined;
+  const waitingForReply = isBusy && lastMessage?.role === "user";
 
   return (
     <MessageList messages={messages} streamingMessageId={streamingMessageId}>
-      {status === "submitted" && <PendingIndicator />}
+      {waitingForReply && <PendingIndicator />}
       {error && <ChatError />}
     </MessageList>
   );
