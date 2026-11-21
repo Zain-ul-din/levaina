@@ -1,4 +1,5 @@
 import type { MemoryTools } from "@/lib/ai/tools/memory-tools";
+import type { Memory } from "@/lib/memory/types";
 import type { InferUITools, UIDataTypes, UIMessage } from "ai";
 
 /** Extra data the server attaches to each assistant message. */
@@ -8,7 +9,12 @@ export type ChatMessageMetadata = {
    * several steps, and each step can reason, so one number per message isn't enough.
    */
   reasoningDurations?: number[];
+  /** Snapshot of the memories the model was given for this reply. */
+  usedMemories?: UsedMemory[];
 };
+
+/** The slice of a memory the chat shows; enough to list it, nothing more. */
+export type UsedMemory = Pick<Memory, "id" | "kind" | "content" | "occurredOn">;
 
 /** Every tool the chat agent can call; drives the typed `tool-*` message parts. */
 export type ChatTools = InferUITools<MemoryTools>;

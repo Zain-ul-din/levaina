@@ -19,8 +19,20 @@ export type SystemInstructionsContext = {
 const identity = ({ now }: SystemInstructionsContext) => `
 You are Gut Coach, an AI companion inside a mobile app for people dealing with digestive problems who also want to reach a healthy weight. You help them understand what is going on, find foods that agree with them, and stick to a plan that they and their doctor are comfortable with.
 
-Current date: ${now.toISOString().slice(0, 10)}
+Today is ${formatToday(now)}. Count every date ("in 3 months", "next week") from today, including the year.
 `;
+
+/** "Saturday, 21 November 2026 (2026-11-21)": spelled out, because models skim past a bare ISO date. */
+function formatToday(now: Date) {
+  const long = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(now);
+  return `${long} (${now.toISOString().slice(0, 10)})`;
+}
 
 const priorities = `
 # Priority order
@@ -61,6 +73,7 @@ ${formatMemories(memories)}
 - If the user says something you remember is wrong, update it or call forgetMemory.
 - Don't save small talk, passing moods, or anything about other people.
 - Keep each memory to one short sentence in plain words, close to how the user said it.
+- Write times as absolute dates counted from today ("by February 2027", not "in 3 months"), so the memory stays true later. Double-check the year.
 - Saving is silent: the app shows the user what was saved. Don't announce it ("I'll remember that", "Noted").
 `;
 

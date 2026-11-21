@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/message-scroller";
 import type { ChatUIMessage } from "@/lib/chat/types";
 import type { ReactNode } from "react";
+import { messagesShowingUsedMemories } from "@/lib/chat/used-memories";
 import { ChatMessage } from "./chat-message";
 
 type MessageListProps = {
@@ -20,6 +21,8 @@ type MessageListProps = {
 };
 
 export function MessageList({ messages, streamingMessageId, children }: MessageListProps) {
+  const showUsedMemoriesFor = messagesShowingUsedMemories(messages);
+
   return (
     <MessageScrollerProvider>
       <MessageScroller>
@@ -40,6 +43,7 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
                 <ChatMessage
                   message={message}
                   isStreaming={message.id === streamingMessageId}
+                  showUsedMemories={showUsedMemoriesFor.has(message.id)}
                 />
               </MessageScrollerItem>
             ))}

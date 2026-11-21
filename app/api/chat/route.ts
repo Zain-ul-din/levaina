@@ -39,6 +39,11 @@ export async function POST(req: Request) {
       originalMessages: messages,
       stream: result.stream,
       messageMetadata: ({ part }): ChatMessageMetadata | undefined => {
+        if (part.type === "start" && memories.length > 0) {
+          return {
+            usedMemories: memories.map(({ id, kind, content, occurredOn }) => ({ id, kind, content, occurredOn })),
+          };
+        }
         if (part.type === "reasoning-start") {
           reasoningStartedAt = Date.now();
         } else if (part.type === "reasoning-end") {

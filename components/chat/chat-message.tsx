@@ -5,12 +5,17 @@ import { UserMessage } from "./user-message";
 type ChatMessageProps = {
   message: ChatUIMessage;
   isStreaming: boolean;
+  showUsedMemories?: boolean;
 };
 
-export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
+export function ChatMessage({ message, isStreaming, showUsedMemories }: ChatMessageProps) {
   return message.role === "user" ? (
     <UserMessage message={message} />
   ) : (
-    <AssistantMessage message={message} isStreaming={isStreaming} />
+    <AssistantMessage
+      message={message}
+      isStreaming={isStreaming}
+      showUsedMemories={showUsedMemories}
+    />
   );
 }
