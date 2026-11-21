@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@shadcn/react':
+    hash: d919c8bef87aef9ad9e5f0b482978d373effccce8fddc7537b71ff6bcea32484
+    path: patches/@shadcn__react.patch
+
 importers:
 
   .:
@@ -22,7 +27,7 @@ importers:
         version: 2.1.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@shadcn/react':
         specifier: ^0.3.1
-        version: 0.3.1(@types/react@19.3.0)(react@19.3.0)
+        version: 0.3.1(patch_hash=d919c8bef87aef9ad9e5f0b482978d373effccce8fddc7537b71ff6bcea32484)(@types/react@19.3.0)(react@19.3.0)
       ai:
         specifier: ^7.0.179
         version: 7.0.179(zod@4.6.7)
@@ -3652,7 +3657,7 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@shadcn/react@0.3.1(@types/react@19.3.0)(react@19.3.0)':
+  '@shadcn/react@0.3.1(patch_hash=d919c8bef87aef9ad9e5f0b482978d373effccce8fddc7537b71ff6bcea32484)(@types/react@19.3.0)(react@19.3.0)':
     optionalDependencies:
       '@types/react': 19.3.0
       react: 19.3.0
