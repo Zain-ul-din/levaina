@@ -27,9 +27,13 @@ export function TextPart({ text, isStreaming }: TextPartProps) {
         </Streamdown>
       )}
       {ask && (
-        <Streamdown className={`${PROSE} font-medium`} isAnimating={isStreaming}>
-          {ask}
-        </Streamdown>
+        // "Your turn": a thin matcha bar (matcha marks things you can do), a little extra space
+        // above, and medium weight. Weight alone was too subtle to read as different from advice.
+        <div className="mt-2 border-l-2 border-primary/80 pl-4">
+          <Streamdown className={`${PROSE} font-medium`} isAnimating={isStreaming}>
+            {ask}
+          </Streamdown>
+        </div>
       )}
     </>
   );
