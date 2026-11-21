@@ -23,7 +23,7 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
     <MessageScrollerProvider>
       <MessageScroller>
         <MessageScrollerViewport>
-          <MessageScrollerContent className="py-6">
+          <MessageScrollerContent className="mx-auto w-full max-w-3xl px-4 py-6">
             {messages.map((message) => (
               <MessageScrollerItem key={message.id}>
                 <ChatMessage

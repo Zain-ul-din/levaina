@@ -21,7 +21,7 @@ export function ChatEmptyState() {
   const { sendMessage, canSend } = useChatActions();
 
   return (
-    <Empty className="flex-1">
+    <Empty className="mx-auto w-full max-w-3xl flex-1 px-4">
       <EmptyHeader>
         <EmptyTitle className="text-2xl">What&apos;s going on with your gut?</EmptyTitle>
         <EmptyDescription>
