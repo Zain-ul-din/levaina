@@ -1,9 +1,20 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { deviceTimeZone } from "@/lib/chat/request";
 import type { ChatUIMessage } from "@/lib/chat/types";
 import { createContext, useCallback, useMemo, type ReactNode } from "react";
 import { useRequiredContext } from "@/lib/hooks/use-require-context";
+
+/**
+ * Sends the device's time zone with every message, so the coach knows the user's local
+ * time (meal timing, caffeine before bed…). `body` is a function: it's read on each send.
+ */
+const transport = new DefaultChatTransport<ChatUIMessage>({
+  api: "/api/chat",
+  body: () => ({ timeZone: deviceTimeZone() }),
+});
 
 type UseChatResult = ReturnType<typeof useChat<ChatUIMessage>>;
 
@@ -34,7 +45,7 @@ const ChatMessagesContext = createContext<ChatMessages | null>(null);
  */
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { messages, setMessages, sendMessage, stop, regenerate, status, error } =
-    useChat<ChatUIMessage>();
+    useChat<ChatUIMessage>({ transport });
   const canSend = status === "ready" || status === "error";
   const isBusy = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;

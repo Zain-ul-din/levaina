@@ -13,26 +13,30 @@ import type { Memory } from "@/lib/memory/types";
 export type SystemInstructionsContext = {
   /** Injected per request so the model can reason about days, weeks and plan timelines. */
   now: Date;
+  /** The user's IANA time zone, so "now" is their local date and time, not the server's. */
+  timeZone: string;
   /** The user's active long-term memories, loaded fresh for every request. */
   memories: Memory[];
 };
 
-const identity = ({ now }: SystemInstructionsContext) => `
+const identity = ({ now, timeZone }: SystemInstructionsContext) => `
 You are ${APP_NAME}, an AI companion inside a mobile app for people whose gut affects what and how much they can eat: IBS, bloating, reflux, intolerances, IBD and other digestive problems, diagnosed or not. Many also want to change their weight, in either direction: some are underweight and struggle to eat enough, others are overweight and want to lose weight without upsetting their gut, and some just want to stay steady. You help them understand what is going on, find foods that agree with them, and stick to a plan that they and their doctor are comfortable with.
 
-Today is ${formatToday(now)}. Count every date ("in 3 months", "next week") from today, including the year.
+It is now ${formatNow(now, timeZone)} for the user. Use this local date and time for anything time-sensitive (meal timing, caffeine, sleep, "should I eat this now?") without asking what time it is, and count every date ("in 3 months", "next week") from today, including the year.
 `;
 
-/** "Saturday, 21 November 2026 (2026-11-21)": spelled out, because models skim past a bare ISO date. */
-function formatToday(now: Date) {
-  const long = new Intl.DateTimeFormat("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(now);
-  return `${long} (${now.toISOString().slice(0, 10)})`;
+/**
+ * "Saturday, 21 November 2026, 17:42 (2026-11-21, Asia/Karachi, GMT+5)": spelled out, because
+ * models skim past a bare ISO date. The ISO date is the local one, used for episode dates.
+ */
+function formatNow(now: Date, timeZone: string) {
+  const part = (options: Intl.DateTimeFormatOptions, locale = "en-GB") =>
+    new Intl.DateTimeFormat(locale, { timeZone, ...options }).format(now);
+  const date = part({ weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const time = part({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const isoDate = part({ year: "numeric", month: "2-digit", day: "2-digit" }, "en-CA");
+  const offset = part({ timeZoneName: "shortOffset" }).split(" ").pop();
+  return `${date}, ${time} (${isoDate}, ${timeZone}, ${offset})`;
 }
 
 const priorities = `

@@ -1,7 +1,8 @@
 import { model } from "@/lib/ai/models";
 import { buildSystemInstructions } from "@/lib/ai/system-instructions";
+import { resolveTimeZone, type ChatRequestBody } from "@/lib/chat/request";
 import { createMemoryTools } from "@/lib/ai/tools/memory-tools";
-import type { ChatMessageMetadata, ChatUIMessage } from "@/lib/chat/types";
+import type { ChatMessageMetadata } from "@/lib/chat/types";
 import { getMemoryStore } from "@/lib/memory/get-memory-store";
 import { getCurrentUserId } from "@/lib/server/current-user";
 import {
@@ -16,7 +17,7 @@ import {
 const MAX_STEPS = 5;
 
 export async function POST(req: Request) {
-  const { messages }: { messages: ChatUIMessage[] } = await req.json();
+  const { messages, timeZone }: ChatRequestBody = await req.json();
 
   const userId = await getCurrentUserId();
   const store = getMemoryStore();
@@ -25,7 +26,8 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model,
-    instructions: buildSystemInstructions({ now: new Date(), memories }),
+    // Server clock (trustworthy) shown in the device's zone (what the user lives in).
+    instructions: buildSystemInstructions({ now: new Date(), timeZone: resolveTimeZone(timeZone), memories }),
     messages: await convertToModelMessages(messages, { tools }),
     tools,
     stopWhen: isStepCount(MAX_STEPS),
