@@ -15,15 +15,18 @@ export type ChatRequestBody = {
 
 const CHAT_ID = /^[A-Za-z0-9_-]{1,64}$/;
 
+/** Chat and message ids: short, URL-safe, and the same rule wherever an id comes from outside. */
+export const isValidChatId = (id: unknown): id is string => typeof id === "string" && CHAT_ID.test(id);
+
 /** Checks the shape of an untrusted request body; null if it isn't a valid user message. */
 export function parseChatRequest(body: unknown): ChatRequestBody | null {
   if (!body || typeof body !== "object") return null;
   const { id, message, timeZone } = body as Record<string, unknown>;
-  if (typeof id !== "string" || !CHAT_ID.test(id)) return null;
+  if (!isValidChatId(id)) return null;
   if (!message || typeof message !== "object") return null;
   const { id: messageId, role, parts } = message as Record<string, unknown>;
   // Only user messages come from the device; assistant messages are written by the server alone.
-  if (typeof messageId !== "string" || !CHAT_ID.test(messageId) || role !== "user" || !Array.isArray(parts)) return null;
+  if (!isValidChatId(messageId) || role !== "user" || !Array.isArray(parts)) return null;
   return { id, message: message as ChatUIMessage, timeZone: typeof timeZone === "string" ? timeZone : undefined };
 }
 

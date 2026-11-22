@@ -3,7 +3,7 @@ import type { ChatUIMessage } from "@/lib/chat/types";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { unwrap as unwrapResult } from "@/lib/supabase/unwrap";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ChatStore, SaveMessagesInput } from "./chat-store";
+import type { ChatStore, ChatSummary, ListChatsOptions, SaveMessagesInput } from "./chat-store";
 
 const unwrap = <T,>(result: { data: T; error: { message: string } | null }) => unwrapResult(result, "Chat store");
 
@@ -34,6 +34,23 @@ export class SupabaseChatStore implements ChatStore {
           ...(row.metadata ? { metadata: row.metadata } : {}),
         }) as unknown as ChatUIMessage,
     );
+  }
+
+  async list(userId: string, { limit, before }: ListChatsOptions): Promise<ChatSummary[]> {
+    let query = this.db.from("chats").select("id, title, updated_at").eq("user_id", userId);
+    if (before) query = query.lt("updated_at", before);
+    const rows = unwrap(await query.order("updated_at", { ascending: false }).limit(limit));
+    return (rows ?? []).map((row) => ({
+      id: row.id,
+      title: row.title ?? "New chat",
+      updatedAt: new Date(row.updated_at).toISOString(),
+    }));
+  }
+
+  /** Messages go with it (ON DELETE CASCADE). */
+  async remove(userId: string, chatId: string) {
+    const rows = unwrap(await this.db.from("chats").delete().eq("user_id", userId).eq("id", chatId).select("id"));
+    return (rows?.length ?? 0) > 0;
   }
 
   /**

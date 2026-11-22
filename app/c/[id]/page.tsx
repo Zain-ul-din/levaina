@@ -24,5 +24,6 @@ async function SavedChat({ params }: SavedChatPageProps) {
   const messages = await (await getChatStore()).load(await getCurrentUserId(), id);
   if (!messages) notFound();
 
-  return <ChatContainer chatId={id} initialMessages={messages} />;
+  // key: switching from one saved chat to another starts a fresh chat state, never a mix of both.
+  return <ChatContainer key={id} chatId={id} initialMessages={messages} />;
 }
