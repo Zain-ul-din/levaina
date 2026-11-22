@@ -101,7 +101,9 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="mx-auto max-h-[92dvh] w-full max-w-lg gap-0 rounded-t-[1.75rem] border-0 bg-background"
+        // At least ~2/3 of the screen, so it reads as a place (not a popup hugging two rows),
+        // and doesn't jump in height when moving between home, a form and the full log.
+        className="mx-auto max-h-[92dvh] min-h-[66dvh] w-full max-w-lg gap-0 rounded-t-[1.75rem] border-0 bg-background"
       >
         <SheetHeader className="flex-row items-center gap-3 px-5 pt-5">
           {view !== "home" && (
