@@ -5,7 +5,41 @@ export type Database = {
   
   "public": {
           Tables: {
-            "memories": {
+            "chat_messages": {
+                  Row: {
+                    "chat_id": string,"created_at": string,"id": string,"metadata": Json | null,"parts": NonNullable<Json>,"position": number,"role": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "chat_id": string,"created_at"?: string,"id": string,"metadata"?: Json | null,"parts": NonNullable<Json>,"position": number,"role": string,"user_id": string
+                  }
+                  Update: {
+                    "chat_id"?: string,"created_at"?: string,"id"?: string,"metadata"?: Json | null,"parts"?: NonNullable<Json>,"position"?: number,"role"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chat_messages_chat_fkey"
+      columns: ["user_id","chat_id"]
+isOneToOne: false
+      referencedRelation: "chats"
+      referencedColumns: ["user_id","id"]
+    }
+                  ]
+                },"chats": {
+                  Row: {
+                    "created_at": string,"id": string,"title": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id": string,"title"?: string | null,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"title"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"memories": {
                   Row: {
                     "category": string,"content": string,"created_at": string,"id": number,"kind": string,"occurred_on": string | null,"status": string,"superseded_by": number | null,"updated_at": string,"user_id": string
                   }

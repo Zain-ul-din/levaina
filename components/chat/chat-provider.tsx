@@ -1,20 +1,11 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { deviceTimeZone } from "@/lib/chat/request";
+import { useRouter } from "next/navigation";
+import { createChatSession } from "@/lib/chat/chat-transport";
 import type { ChatUIMessage } from "@/lib/chat/types";
-import { createContext, useCallback, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useMemo, useState, type ReactNode } from "react";
 import { useRequiredContext } from "@/lib/hooks/use-require-context";
-
-/**
- * Sends the device's time zone with every message, so the coach knows the user's local
- * time (meal timing, caffeine before bed…). `body` is a function: it's read on each send.
- */
-const transport = new DefaultChatTransport<ChatUIMessage>({
-  api: "/api/chat",
-  body: () => ({ timeZone: deviceTimeZone() }),
-});
 
 type UseChatResult = ReturnType<typeof useChat<ChatUIMessage>>;
 
@@ -39,21 +30,41 @@ type ChatMessages = UseChatResult["messages"];
 const ChatActionsContext = createContext<ChatActions | null>(null);
 const ChatMessagesContext = createContext<ChatMessages | null>(null);
 
+type ChatProviderProps = {
+  children: ReactNode;
+  /** A saved chat to reopen; omit for a new one. */
+  chatId?: string;
+  initialMessages?: ChatUIMessage[];
+};
+
 /**
  * Owns the single useChat instance and splits it into two contexts,
  * so a component that only sends messages doesn't re-render while a reply streams.
  */
-export function ChatProvider({ children }: { children: ReactNode }) {
-  const { messages, setMessages, sendMessage, stop, regenerate, status, error } =
-    useChat<ChatUIMessage>({ transport });
+export function ChatProvider({ children, chatId: savedChatId, initialMessages }: ChatProviderProps) {
+  const router = useRouter();
+
+  // Created once per provider; holds the chat's id outside React state (see createChatSession).
+  const [chatSession] = useState(() => createChatSession(savedChatId));
+
+  // Bumped by "New chat": a new key makes useChat start an empty conversation.
+  const [session, setSession] = useState(0);
+  const isSavedSession = session === 0 && savedChatId !== undefined;
+  const { messages, sendMessage, stop, regenerate, status, error } = useChat<ChatUIMessage>({
+    id: isSavedSession ? savedChatId : `new-${session}`,
+    messages: isSavedSession ? initialMessages : undefined,
+    transport: chatSession.transport,
+  });
   const canSend = status === "ready" || status === "error";
   const isBusy = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;
 
   const startNewChat = useCallback(() => {
     void stop();
-    setMessages([]);
-  }, [stop, setMessages]);
+    chatSession.startNew();
+    setSession((value) => value + 1);
+    router.push("/");
+  }, [stop, router, chatSession]);
 
   // The functions are stable, so this object only changes when status, error or hasMessages change.
   const actions = useMemo<ChatActions>(

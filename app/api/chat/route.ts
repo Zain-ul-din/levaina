@@ -1,10 +1,13 @@
 import { buildConversationContext } from "@/lib/ai/compaction/build-context";
 import { createChatAgent } from "@/lib/ai/chat-agent";
-import { resolveTimeZone, type ChatRequestBody } from "@/lib/chat/request";
+import { titleFromMessage } from "@/lib/chats/chat-store";
+import { getChatStore } from "@/lib/chats/get-chat-store";
+import { parseChatRequest, resolveTimeZone } from "@/lib/chat/request";
 import type { ChatMessageMetadata, ChatUIMessage } from "@/lib/chat/types";
 import { getMemoryStore } from "@/lib/memory/get-memory-store";
 import { getCurrentUserId } from "@/lib/server/current-user";
 import {
+  consumeStream,
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -17,16 +20,27 @@ import {
 const COMPACTION_PART_ID = "compaction";
 
 export async function POST(req: Request) {
-  const { messages, timeZone: requestedZone }: ChatRequestBody = await req.json();
+  const body = parseChatRequest(await req.json().catch(() => null));
+  if (!body) return Response.json({ error: "Invalid chat request" }, { status: 400 });
+  const { id: chatId, message } = body;
 
   const userId = await getCurrentUserId();
   const store = getMemoryStore();
-  const memories = await store.listActive(userId);
+  const chatStore = getChatStore();
+  const [stored, memories] = await Promise.all([chatStore.load(userId, chatId), store.listActive(userId)]);
+
+  // The server owns the history. A message it already has (retry, regenerate) replaces itself and what followed.
+  const history = stored ?? [];
+  const existing = history.findIndex((saved) => saved.id === message.id);
+  const from = existing === -1 ? history.length : existing;
+  const messages = [...history.slice(0, from), message];
+
   // Server clock (trustworthy) shown in the device's zone (what the user lives in).
   const now = new Date();
-  const timeZone = resolveTimeZone(requestedZone);
+  const timeZone = resolveTimeZone(body.timeZone);
 
   const stream = createUIMessageStream<ChatUIMessage>({
+    originalMessages: messages,
     execute: async ({ writer }) => {
       // "start" names the reply, so it must come before anything else: a compaction part sent
       // earlier would land in a temporary message, and the client would render the reply twice.
@@ -58,6 +72,8 @@ export async function POST(req: Request) {
       const result = streamText({
         ...settings,
         messages: await convertToModelMessages(context.messages, { tools }),
+        // Stop button: stop generating (and save what was written so far).
+        abortSignal: req.signal,
       });
 
       let reasoningStartedAt = 0;
@@ -65,7 +81,6 @@ export async function POST(req: Request) {
 
       writer.merge(
         toUIMessageStream({
-          originalMessages: messages,
           stream: result.stream,
           sendStart: false, // already sent above
           messageMetadata: ({ part }): ChatMessageMetadata | undefined => {
@@ -79,7 +94,24 @@ export async function POST(req: Request) {
         }),
       );
     },
+    // Runs when the reply ends, finished or stopped: save the user's message and the reply as one turn.
+    onEnd: async ({ responseMessage }) => {
+      const hasReply = responseMessage.parts.some((part) => part.type !== "step-start");
+      try {
+        await chatStore.saveMessages(userId, chatId, {
+          from,
+          messages: hasReply ? [message, responseMessage] : [message],
+          title: from === 0 ? titleFromMessage(message) : undefined,
+        });
+      } catch (error) {
+        console.error("Saving the chat failed", error);
+      }
+    },
   });
 
-  return createUIMessageStreamResponse({ stream });
+  return createUIMessageStreamResponse({
+    stream,
+    // Keep reading even if the device disconnects, so onEnd still runs and the turn is saved.
+    consumeSseStream: ({ stream }) => consumeStream({ stream }),
+  });
 }

@@ -1,5 +1,6 @@
 import "server-only";
 import type { Database } from "@/lib/supabase/database.types";
+import { unwrap as unwrapResult } from "@/lib/supabase/unwrap";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { MemoryNotFoundError, type MemoryStore } from "./memory-store";
 import type { Memory, MemoryCategory, MemoryKind, MemoryStatus, NewMemory } from "./types";
@@ -114,7 +115,4 @@ function toMemory(row: Picked): Memory {
   };
 }
 
-function unwrap<T>({ data, error }: { data: T; error: { message: string } | null }): T {
-  if (error) throw new Error(`Memory store: ${error.message}`);
-  return data;
-}
+const unwrap = <T,>(result: { data: T; error: { message: string } | null }) => unwrapResult(result, "Memory store");
