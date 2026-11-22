@@ -56,6 +56,9 @@ export async function createChatAgent({
       instructions: buildSystemInstructions({ now, timeZone, memories, log, conversationSummary }),
       tools,
       stopWhen: isStepCount(MAX_STEPS),
+      // Large 4 always reasons; "low" caps it. On the coach eval (Nov 2026) low kept 24/24 and cut the
+      // median reply from ~15s to ~6s and the worst case from 77s to 15s (default thinking ran to 150s in the app).
+      providerOptions: { mistral: { reasoningEffort: "low" as const } },
       // Step 0 must decide about memory and the log: save/log something, or explicitly noNewMemory.
       // Prompting alone let the model skip saving in long conversations (~1 in 3 turns).
       prepareStep: ({ stepNumber }: { stepNumber: number }) =>
