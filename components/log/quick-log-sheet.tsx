@@ -2,25 +2,26 @@
 
 import { FloatingIconButton } from "@/components/brand/floating-icon-button";
 import { UndoButton } from "@/components/chat/primitives/tool-line";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { TraceLine, TraceTitle } from "@/components/ui/trace";
-import { Button } from "@/components/ui/button";
 import { KIND_LABELS, QUICK_LOG_KINDS } from "@/lib/log/labels";
 import { addLogEntryRequest, removeLogEntryRequest, type AddLogEntryInput, type AddLogEntryResponse } from "@/lib/log/log-api";
 import { ArrowLeftIcon, CaretRightIcon, CheckCircleIcon, XIcon } from "@phosphor-icons/react";
-import { useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import type { LogFormProps } from "./forms/form-props";
 import { MealForm } from "./forms/meal-form";
 import { StoolForm } from "./forms/stool-form";
 import { SymptomForm } from "./forms/symptom-form";
 import { WeightForm } from "./forms/weight-form";
-import { LogList } from "./log-list";
+import { KindBadge } from "./kind-badge";
+import { entryDay, LogList, LogTimeline } from "./log-list";
 import { SafetyNote } from "./safety-note";
 import { useLog } from "./use-log";
 
 type QuickLogKind = (typeof QUICK_LOG_KINDS)[number];
 
-/** Adding a kind to the sheet = a label in lib/log/labels.ts and a form here. */
+/** Adding a kind to the sheet = a label in lib/log/labels.ts, an icon in kind-badge.tsx, and a form here. */
 const FORMS: Record<QuickLogKind, ComponentType<LogFormProps>> = {
   meal: MealForm,
   symptom: SymptomForm,
@@ -28,7 +29,7 @@ const FORMS: Record<QuickLogKind, ComponentType<LogFormProps>> = {
   weight: WeightForm,
 };
 
-/** What the sheet shows: the tiles, one kind's form, or the log itself. */
+/** What the sheet shows: home (actions + today), one kind's form, or every entry. */
 type View = "home" | QuickLogKind | "history";
 
 type QuickLogSheetProps = {
@@ -38,19 +39,10 @@ type QuickLogSheetProps = {
 
 const clock = (iso: string) => new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
-const TITLES: Record<View, string> = {
-  home: "Log something",
-  history: "Your log",
-  ...(Object.fromEntries(QUICK_LOG_KINDS.map((kind) => [kind, `${KIND_LABELS[kind].emoji} ${KIND_LABELS[kind].label}`])) as Record<
-    QuickLogKind,
-    string
-  >),
-};
-
 /**
  * The log's home, opened from the chat's + button.
- * Logging is two taps: pick what, fill a few chips, save. Saving returns here with a confirmation
- * and Undo, so several things can be logged in a row. "Your log" lists everything, by day.
+ * Logging is two taps: pick what, fill a few chips, save. Saving returns home, where the entry
+ * joins today's timeline with Undo, so several things can be logged in a row.
  * Entries go to the same log the coach reads; the chat isn't interrupted.
  */
 export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
@@ -59,11 +51,16 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
   const [error, setError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<AddLogEntryResponse | null>(null);
   const log = useLog();
+  const { load } = log;
+
+  // Fresh every time the sheet opens: the coach may have logged something from the chat since.
+  useEffect(() => {
+    if (open) void load();
+  }, [open, load]);
 
   const show = (next: View) => {
     setView(next);
     setError(null);
-    if (next === "history") void log.load();
   };
 
   const handleOpenChange = (next: boolean) => {
@@ -79,7 +76,9 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
     setIsSaving(true);
     setError(null);
     try {
-      setLastSaved(await addLogEntryRequest(input));
+      const saved = await addLogEntryRequest(input);
+      setLastSaved(saved);
+      log.prepend(saved.entry);
       setView("home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save that. Try again.");
@@ -88,7 +87,14 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
     }
   };
 
-  const Form = view !== "home" && view !== "history" ? FORMS[view] : null;
+  const undoLastSaved = async (saved: AddLogEntryResponse) => {
+    await removeLogEntryRequest(saved.entry.id);
+    log.drop(saved.entry.id);
+    setLastSaved(null);
+  };
+
+  const isForm = view !== "home" && view !== "history";
+  const Form = isForm ? FORMS[view] : null;
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -103,8 +109,11 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
               <ArrowLeftIcon />
             </FloatingIconButton>
           )}
+          {isForm && <KindBadge kind={view} />}
           <div className="min-w-0 flex-1">
-            <SheetTitle className="font-display text-2xl font-semibold tracking-tight">{TITLES[view]}</SheetTitle>
+            <SheetTitle className="font-display text-2xl font-semibold tracking-tight">
+              {view === "home" ? "Log something" : view === "history" ? "Your log" : KIND_LABELS[view]}
+            </SheetTitle>
             <SheetDescription className={view === "home" ? undefined : "sr-only"}>
               The coach sees everything you log and looks for patterns.
             </SheetDescription>
@@ -114,32 +123,19 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
           </SheetClose>
         </SheetHeader>
 
-        <div className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {Form && (
-            // key: a fresh form (and a fresh "now") every time a tile is opened.
+            // key: a fresh form (and a fresh "now") every time an action is opened.
             <Form key={view} onSubmit={save} isSaving={isSaving} error={error} />
           )}
 
           {view === "history" && <History log={log} />}
 
           {view === "home" && (
-            <div className="flex flex-col gap-4">
-              {lastSaved && <SavedConfirmation saved={lastSaved} onUndone={() => setLastSaved(null)} />}
-              <KindTiles onChoose={show} />
-              <button
-                type="button"
-                onClick={() => show("history")}
-                className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3.5 text-left shadow-soft outline-none hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <span aria-hidden="true" className="text-xl">
-                  📖
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-base font-semibold">Your log</span>
-                  <span className="block text-sm text-muted-foreground">See or remove what you and the coach logged</span>
-                </span>
-                <CaretRightIcon className="size-4 text-muted-foreground" />
-              </button>
+            <div className="flex flex-col gap-6">
+              <ActionRow onChoose={show} />
+              {lastSaved && <SavedConfirmation saved={lastSaved} onUndo={() => undoLastSaved(lastSaved)} />}
+              <Today log={log} onShowAll={() => show("history")} />
             </div>
           )}
         </div>
@@ -148,24 +144,76 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
   );
 }
 
-function KindTiles({ onChoose }: { onChoose: (kind: QuickLogKind) => void }) {
+/** The four things people log most, as one row of round buttons: the sheet's main job. */
+function ActionRow({ onChoose }: { onChoose: (kind: QuickLogKind) => void }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-4 gap-2">
       {QUICK_LOG_KINDS.map((kind) => (
         <button
           key={kind}
           type="button"
           onClick={() => onChoose(kind)}
-          className="flex flex-col items-start gap-1 rounded-2xl bg-card p-4 text-left shadow-soft transition-transform outline-none hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98]"
+          className="group/action flex flex-col items-center gap-2 rounded-2xl py-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <span aria-hidden="true" className="text-2xl">
-            {KIND_LABELS[kind].emoji}
-          </span>
-          <span className="text-base font-semibold">{KIND_LABELS[kind].label}</span>
-          <span className="text-sm text-muted-foreground">{KIND_LABELS[kind].hint}</span>
+          <KindBadge
+            kind={kind}
+            size="lg"
+            className="shadow-soft transition-transform group-hover/action:-translate-y-0.5 group-active/action:scale-95"
+          />
+          <span className="text-sm font-medium">{KIND_LABELS[kind]}</span>
         </button>
       ))}
     </div>
+  );
+}
+
+/** Today's entries as a timeline, so what's already logged is visible without another screen. */
+function Today({ log, onShowAll }: { log: ReturnType<typeof useLog>; onShowAll: () => void }) {
+  // The day the sheet was opened; fixed so the list doesn't shift at midnight mid-view.
+  const [today] = useState(() => entryDay({ loggedAt: new Date().toISOString() }));
+  const todays = log.entries.filter((entry) => entryDay(entry) === today);
+  const hasEarlier = log.hasMore || log.entries.length > todays.length;
+
+  return (
+    <section aria-labelledby="log-today" className="flex flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-3 px-1">
+        <h3 id="log-today" className="text-[0.95rem] font-semibold">
+          Today
+        </h3>
+        {(todays.length > 0 || hasEarlier) && (
+          <button
+            type="button"
+            onClick={onShowAll}
+            className="flex items-center gap-1 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            All entries
+            <CaretRightIcon className="size-3.5" />
+          </button>
+        )}
+      </div>
+
+      {log.error && (
+        <p role="alert" className="px-1 text-sm text-destructive">
+          {log.error}
+        </p>
+      )}
+
+      {log.status === "ready" && todays.length > 0 && (
+        <div className="rounded-2xl bg-card px-4 pt-4 pb-1 shadow-soft">
+          <LogTimeline entries={todays} onRemove={log.remove} />
+        </div>
+      )}
+      {log.status === "ready" && todays.length === 0 && (
+        <p className="rounded-2xl border border-dashed border-border px-4 py-5 text-center text-[0.95rem] text-muted-foreground">
+          Nothing logged today yet. Tap above, or just tell the coach what you ate.
+        </p>
+      )}
+      {(log.status === "loading" || log.status === "idle") && (
+        <TraceLine status="running">
+          <TraceTitle>Loading</TraceTitle>
+        </TraceLine>
+      )}
+    </section>
   );
 }
 
@@ -193,7 +241,7 @@ function History({ log }: { log: ReturnType<typeof useLog> }) {
   );
 }
 
-function SavedConfirmation({ saved, onUndone }: { saved: AddLogEntryResponse; onUndone: () => void }) {
+function SavedConfirmation({ saved, onUndo }: { saved: AddLogEntryResponse; onUndo: () => Promise<void> }) {
   return (
     <div className="flex flex-col gap-3">
       <div role="status" className="flex items-center gap-2 rounded-2xl bg-(--saved) px-4 py-3 text-(--saved-foreground)">
@@ -201,12 +249,7 @@ function SavedConfirmation({ saved, onUndone }: { saved: AddLogEntryResponse; on
         <span className="min-w-0 flex-1 truncate text-[0.95rem]">
           <span className="font-medium">Logged {clock(saved.entry.loggedAt)}</span> · {saved.text}
         </span>
-        <UndoButton
-          undo={async () => {
-            await removeLogEntryRequest(saved.entry.id);
-            onUndone();
-          }}
-        />
+        <UndoButton undo={onUndo} />
       </div>
       {saved.safetyNote && <SafetyNote>{saved.safetyNote}</SafetyNote>}
     </div>

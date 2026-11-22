@@ -144,6 +144,13 @@
   --saved: #e6edd5;
   --saved-foreground: #4f6a22;
 
+  /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
+  --log-meal: #d9762f;
+  --log-symptom: #8d6486;
+  --log-stool: #8a5a3b;
+  --log-weight: #5e7a2e;
+  --log-note: #7e776b;
+
   /* Food colours (charts, later trackers): protein, carbs, fat, fibre, water. */
   --chart-1: #ec7a3f;
   --chart-2: #b3c93a;
@@ -186,6 +193,12 @@
 
   --saved: #2b3320;
   --saved-foreground: #c4da98;
+
+  --log-meal: #f0a066;
+  --log-symptom: #c79bbf;
+  --log-stool: #c99674;
+  --log-weight: #a9c46e;
+  --log-note: #a49d8f;
 
   --sidebar: #1e1d18;
   --sidebar-foreground: #efebe1;

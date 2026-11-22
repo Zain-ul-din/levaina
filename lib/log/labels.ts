@@ -8,12 +8,13 @@ import type { LogKind, MealType, StoolColor, Symptom } from "./types";
 /** Tiles on the quick-log sheet, in the order they appear. */
 export const QUICK_LOG_KINDS = ["meal", "symptom", "stool", "weight"] as const satisfies readonly LogKind[];
 
-export const KIND_LABELS: Record<LogKind, { label: string; emoji: string; hint: string }> = {
-  meal: { label: "Meal", emoji: "🍲", hint: "What you ate or drank" },
-  symptom: { label: "Symptom", emoji: "🌀", hint: "Bloating, pain, reflux…" },
-  stool: { label: "Stool", emoji: "🚽", hint: "Shape and colour" },
-  weight: { label: "Weight", emoji: "⚖️", hint: "A weigh-in" },
-  note: { label: "Note", emoji: "✏️", hint: "Sleep, stress, anything else" },
+/** Names for each kind; their icons live in components/log/kind-badge.tsx. */
+export const KIND_LABELS: Record<LogKind, string> = {
+  meal: "Meal",
+  symptom: "Symptom",
+  stool: "Stool",
+  weight: "Weight",
+  note: "Note",
 };
 
 export const SYMPTOM_LABELS: Record<Symptom, string> = {

@@ -70,8 +70,18 @@ export function useLog() {
     }
   }, []);
 
+  /** Shows an entry saved elsewhere (the quick-log forms) without refetching. */
+  const prepend = useCallback((entry: LogEntry) => {
+    setEntries((current) => [entry, ...current.filter((item) => item.id !== entry.id)].sort(byNewest));
+  }, []);
+
+  /** Drops an entry that was already deleted on the server (e.g. by Undo). */
+  const drop = useCallback((id: number) => {
+    setEntries((current) => current.filter((item) => item.id !== id));
+  }, []);
+
   // Don't let a late response land after the component is gone.
   useEffect(() => () => requestRef.current?.abort(), []);
 
-  return { entries, status, error, hasMore, isLoadingMore, load, loadMore, remove };
+  return { entries, status, error, hasMore, isLoadingMore, load, loadMore, remove, prepend, drop };
 }
