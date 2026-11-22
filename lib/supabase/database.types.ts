@@ -39,6 +39,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"log_entries": {
+                  Row: {
+                    "created_at": string,"details": NonNullable<Json>,"id": number,"kind": string,"logged_at": string,"source": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"details": NonNullable<Json>,"id"?: never,"kind": string,"logged_at": string,"source": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"details"?: NonNullable<Json>,"id"?: never,"kind"?: string,"logged_at"?: string,"source"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"memories": {
                   Row: {
                     "category": string,"content": string,"created_at": string,"id": number,"kind": string,"occurred_on": string | null,"status": string,"superseded_by": number | null,"updated_at": string,"user_id": string
