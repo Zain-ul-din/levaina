@@ -1,5 +1,6 @@
 import { buildConversationContext } from "@/lib/ai/compaction/build-context";
 import { createChatAgent } from "@/lib/ai/chat-agent";
+import { forgiveSkippedRecording } from "@/lib/ai/forgive-skipped-recording";
 import { titleFromMessage } from "@/lib/chats/chat-store";
 import { getChatStore } from "@/lib/chats/get-chat-store";
 import { parseChatRequest, resolveTimeZone } from "@/lib/chat/request";
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
 
       writer.merge(
         toUIMessageStream({
-          stream: result.stream,
+          stream: forgiveSkippedRecording(result.stream),
           sendStart: false, // already sent above
           messageMetadata: ({ part }): ChatMessageMetadata | undefined => {
             if (part.type === "reasoning-start") {
