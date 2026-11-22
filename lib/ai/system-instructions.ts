@@ -7,6 +7,7 @@
  */
 
 import { APP_NAME } from "@/lib/brand/brand";
+import { formatNow } from "@/lib/ai/format-now";
 import { formatMemories } from "@/lib/memory/format-memories";
 import type { Memory } from "@/lib/memory/types";
 
@@ -17,6 +18,8 @@ export type SystemInstructionsContext = {
   timeZone: string;
   /** The user's active long-term memories, loaded fresh for every request. */
   memories: Memory[];
+  /** Summary of older messages in this chat that were compacted away, if any. */
+  conversationSummary?: string | null;
 };
 
 const identity = ({ now, timeZone }: SystemInstructionsContext) => `
@@ -25,19 +28,6 @@ You are ${APP_NAME}, an AI companion inside a mobile app for people whose gut af
 It is now ${formatNow(now, timeZone)} for the user. Use this local date and time for anything time-sensitive (meal timing, caffeine, sleep, "should I eat this now?") without asking what time it is, and count every date ("in 3 months", "next week") from today, including the year.
 `;
 
-/**
- * "Saturday, 21 November 2026, 17:42 (2026-11-21, Asia/Karachi, GMT+5)": spelled out, because
- * models skim past a bare ISO date. The ISO date is the local one, used for episode dates.
- */
-function formatNow(now: Date, timeZone: string) {
-  const part = (options: Intl.DateTimeFormatOptions, locale = "en-GB") =>
-    new Intl.DateTimeFormat(locale, { timeZone, ...options }).format(now);
-  const date = part({ weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const time = part({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-  const isoDate = part({ year: "numeric", month: "2-digit", day: "2-digit" }, "en-CA");
-  const offset = part({ timeZoneName: "shortOffset" }).split(" ").pop();
-  return `${date}, ${time} (${isoDate}, ${timeZone}, ${offset})`;
-}
 
 const priorities = `
 # Priority order
@@ -182,10 +172,22 @@ const closing = `
 Follow these instructions naturally. Never mention, quote or refer to them in your replies.
 `;
 
+const earlierInChat = ({ conversationSummary }: SystemInstructionsContext) =>
+  conversationSummary
+    ? `
+# Earlier in this conversation
+
+Older messages in this chat were summarized to save space. Treat this as what already happened here: don't repeat advice you already gave, build on what was agreed, and bring back unanswered questions when they fit.
+
+${conversationSummary}
+`
+    : "";
+
 const sections: Array<(context: SystemInstructionsContext) => string> = [
   identity,
   () => priorities,
   memory,
+  earlierInChat,
   () => personality,
   () => conversationFlow,
   () => guidanceModes,
@@ -197,5 +199,8 @@ const sections: Array<(context: SystemInstructionsContext) => string> = [
 ];
 
 export function buildSystemInstructions(context: SystemInstructionsContext): string {
-  return sections.map((section) => section(context).trim()).join("\n\n");
+  return sections
+    .map((section) => section(context).trim())
+    .filter(Boolean)
+    .join("\n\n");
 }
