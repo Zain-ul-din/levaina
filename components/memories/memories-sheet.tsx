@@ -14,6 +14,8 @@ import { BookmarksSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { MemoryList } from "./memory-list";
 import { useMemories } from "./use-memories";
+import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth/actions";
 
 /** Header button that opens everything the coach remembers about you. */
 export function MemoriesSheet() {
@@ -62,6 +64,13 @@ export function MemoriesSheet() {
               status === "ready" && <MemoryList memories={memories} onForget={forget} />
             )}
           </div>
+
+          {/* Account lives here, next to "your data": rarely needed, so not in the header. */}
+          <form action={signOut} className="border-t border-border px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <Button type="submit" variant="ghost" className="h-10 w-full rounded-xl text-muted-foreground">
+              Sign out
+            </Button>
+          </form>
         </SheetContent>
       </Sheet>
     </>

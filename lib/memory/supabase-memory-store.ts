@@ -9,7 +9,7 @@ type MemoryRow = Database["public"]["Tables"]["memories"]["Row"];
 
 const COLUMNS = "id, kind, category, content, occurred_on, status, created_at";
 
-/** Postgres-backed MemoryStore. The secret-key client bypasses RLS, so every query filters by user_id. */
+/** Postgres-backed MemoryStore. Runs as the signed-in user, so RLS applies; queries also filter by user_id. */
 export class SupabaseMemoryStore implements MemoryStore {
   constructor(private readonly db: SupabaseClient<Database>) {}
 

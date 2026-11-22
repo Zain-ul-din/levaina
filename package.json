@@ -15,6 +15,7 @@
     "@base-ui/react": "^1.9.0",
     "@phosphor-icons/react": "^2.1.10",
     "@shadcn/react": "^0.3.1",
+    "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.119.2",
     "ai": "^7.0.179",
     "class-variance-authority": "^0.7.1",

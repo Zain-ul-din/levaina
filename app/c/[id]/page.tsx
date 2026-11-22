@@ -21,7 +21,7 @@ export default function SavedChatPage({ params }: SavedChatPageProps) {
 /** Someone else's (or a made-up) id is simply not found. */
 async function SavedChat({ params }: SavedChatPageProps) {
   const { id } = await params;
-  const messages = await getChatStore().load(await getCurrentUserId(), id);
+  const messages = await (await getChatStore()).load(await getCurrentUserId(), id);
   if (!messages) notFound();
 
   return <ChatContainer chatId={id} initialMessages={messages} />;

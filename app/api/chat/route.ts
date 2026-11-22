@@ -24,9 +24,7 @@ export async function POST(req: Request) {
   if (!body) return Response.json({ error: "Invalid chat request" }, { status: 400 });
   const { id: chatId, message } = body;
 
-  const userId = await getCurrentUserId();
-  const store = getMemoryStore();
-  const chatStore = getChatStore();
+  const [userId, store, chatStore] = await Promise.all([getCurrentUserId(), getMemoryStore(), getChatStore()]);
   const [stored, memories] = await Promise.all([chatStore.load(userId, chatId), store.listActive(userId)]);
 
   // The server owns the history. A message it already has (retry, regenerate) replaces itself and what followed.

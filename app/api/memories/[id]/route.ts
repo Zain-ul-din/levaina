@@ -8,7 +8,7 @@ export async function DELETE(_req: Request, { params }: RouteContext<"/api/memor
     return Response.json({ error: "Invalid memory id." }, { status: 400 });
   }
 
-  const forgotten = await getMemoryStore().forget(await getCurrentUserId(), id);
+  const forgotten = await (await getMemoryStore()).forget(await getCurrentUserId(), id);
   if (!forgotten) {
     return Response.json({ error: "That memory doesn't exist or was already removed." }, { status: 404 });
   }

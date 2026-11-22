@@ -7,7 +7,7 @@ import type { ChatStore, SaveMessagesInput } from "./chat-store";
 
 const unwrap = <T,>(result: { data: T; error: { message: string } | null }) => unwrapResult(result, "Chat store");
 
-/** Postgres-backed ChatStore. The secret-key client bypasses RLS, so every query filters by user_id. */
+/** Postgres-backed ChatStore. Runs as the signed-in user, so RLS applies; queries also filter by user_id. */
 export class SupabaseChatStore implements ChatStore {
   constructor(private readonly db: SupabaseClient<Database>) {}
 

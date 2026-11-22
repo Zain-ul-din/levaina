@@ -1,9 +1,9 @@
 import "server-only";
-import { getSupabaseServerClient } from "@/lib/supabase/server-client";
+import { getSupabaseSessionClient } from "@/lib/supabase/session-client";
 import type { MemoryStore } from "./memory-store";
 import { SupabaseMemoryStore } from "./supabase-memory-store";
 
 /** Composition root for memory storage: the only file that picks the implementation. */
-export function getMemoryStore(): MemoryStore {
-  return new SupabaseMemoryStore(getSupabaseServerClient());
+export async function getMemoryStore(): Promise<MemoryStore> {
+  return new SupabaseMemoryStore(await getSupabaseSessionClient());
 }
