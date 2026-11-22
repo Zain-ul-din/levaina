@@ -1,18 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
 import type { MemoryToolPart } from "@/lib/chat/types";
 import { forgetMemoryRequest } from "@/lib/memory/memory-api";
-import {
-  BookmarkSimpleIcon,
-  ArrowCounterClockwiseIcon,
-  PencilSimpleIcon,
-  TrashSimpleIcon,
-  WarningCircleIcon,
-} from "@phosphor-icons/react";
-import { cn } from "@/lib/utils";
-import { useState, type ReactNode } from "react";
+import { BookmarkSimpleIcon, PencilSimpleIcon, TrashSimpleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
+import { ExpandableToolText, UndoButton } from "./tool-line";
 
 type MemoryPartProps = {
   part: MemoryToolPart;
@@ -53,64 +46,9 @@ export function MemoryPart({ part }: MemoryPartProps) {
     // Top-aligned so Undo stays on the first line when the text expands (text py-0.5 centres on Undo's 24px).
     // The "Saved" pill already says what happened; an icon next to it would say it twice.
     <Marker className="items-start">
-      <ExpandableText label={label.done} text={output.content} />
+      <ExpandableToolText label={label.done} text={output.content} />
       {/* Only a fresh save can be undone in one step; updates and removals are reversible by asking. */}
-      {part.type === "tool-saveMemory" && <UndoSave memoryId={output.id} />}
+      {part.type === "tool-saveMemory" && <UndoButton undo={() => forgetMemoryRequest(output.id)} />}
     </Marker>
-  );
-}
-
-/**
- * One line by default ("Saved: Wants to keep carbs in his di…"); click to read it all.
- * The button wraps only the text, so Undo next to it stays a separate target.
- */
-function ExpandableText({ label, text }: { label: string; text: string }) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <button
-      type="button"
-      aria-expanded={expanded}
-      title={expanded ? undefined : text}
-      onClick={() => setExpanded((value) => !value)}
-      className={cn(
-        "min-w-0 flex-1 cursor-pointer rounded-sm py-0.5 text-left outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
-        expanded ? "wrap-break-word" : "truncate",
-      )}
-    >
-      <span className="mr-2 inline-block rounded-full bg-(--saved) px-2 py-0.5 text-xs font-medium text-(--saved-foreground)">
-        {label}
-      </span>
-      {text}
-    </button>
-  );
-}
-
-function UndoSave({ memoryId }: { memoryId: number }) {
-  const [state, setState] = useState<"idle" | "pending" | "undone" | "failed">("idle");
-
-  if (state === "undone") return <span className="shrink-0 text-xs">Removed</span>;
-
-  const undo = async () => {
-    setState("pending");
-    try {
-      await forgetMemoryRequest(memoryId);
-      setState("undone");
-    } catch {
-      setState("failed");
-    }
-  };
-
-  return (
-    <Button
-      variant="ghost"
-      size="xs"
-      className="ml-auto shrink-0"
-      disabled={state === "pending"}
-      onClick={undo}
-    >
-      <ArrowCounterClockwiseIcon />
-      {state === "failed" ? "Retry undo" : "Undo"}
-    </Button>
   );
 }

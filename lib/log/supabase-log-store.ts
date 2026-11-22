@@ -31,13 +31,14 @@ export class SupabaseLogStore implements LogStore {
     return toLogEntry(row);
   }
 
-  async list(userId: string, { since, until, limit = DEFAULT_LOG_LIMIT }: LogRange) {
+  async list(userId: string, { since, until, kinds, limit = DEFAULT_LOG_LIMIT }: LogRange) {
     let query = this.db
       .from("log_entries")
       .select(COLUMNS)
       .eq("user_id", userId)
       .gte("logged_at", since.toISOString());
     if (until) query = query.lt("logged_at", until.toISOString());
+    if (kinds) query = query.in("kind", [...kinds]);
     const rows = unwrap(await query.order("logged_at", { ascending: false }).order("id", { ascending: false }).limit(limit));
     return (rows ?? []).map(toLogEntry);
   }

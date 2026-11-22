@@ -59,7 +59,7 @@ export function createMemoryTools({ store, userId }: MemoryToolsOptions) {
 
     noNewMemory: tool({
       description:
-        "Call this when the user's latest message has nothing new worth remembering (small talk, a question, something already saved). It does nothing; it records that you checked.",
+        "Call this when the user's latest message has nothing new to remember or log (small talk, a question, something already saved or logged). It does nothing; it records that you checked.",
       inputSchema: z.object({}),
       execute: async () => ({ ok: true }),
     }),

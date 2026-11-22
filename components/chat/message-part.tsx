@@ -1,4 +1,5 @@
 import type { ChatMessagePart } from "@/lib/chat/types";
+import { LogPart } from "./primitives/log-part";
 import { MemoryPart } from "./primitives/memory-part";
 import { ReasoningPart } from "./primitives/reasoning-part";
 import { TextPart } from "./primitives/text-part";
@@ -32,6 +33,13 @@ export function MessagePart({ part, isStreaming, reasoningDurationMs }: MessageP
     case "tool-updateMemory":
     case "tool-forgetMemory":
       return <MemoryPart part={part} />;
+    case "tool-logMeal":
+    case "tool-logSymptom":
+    case "tool-logStool":
+    case "tool-logWeight":
+    case "tool-logNote":
+    case "tool-removeLogEntry":
+      return <LogPart part={part} />;
     default:
       // step-start and part types we don't render yet.
       return null;

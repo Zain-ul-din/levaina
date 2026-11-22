@@ -70,13 +70,18 @@ export const symptomDetailsSchema = z.object({
   note: shortText(200).optional().describe("Anything else they said about it, e.g. 'upper belly, after eating'."),
 });
 
+// Required but nullable, not optional: models skip optional fields, while null has to be chosen on purpose.
+// Both null is still worth logging: it records that a bowel movement happened (frequency).
 export const stoolDetailsSchema = z.object({
   bristol: z
     .int()
     .min(1)
     .max(7)
-    .describe(`Bristol stool type: ${STOOL_TYPES.map(({ bristol, name }) => `${bristol} = ${name.toLowerCase()}`).join(", ")}`),
-  color: z.enum(STOOL_COLORS).optional(),
+    .nullable()
+    .describe(
+      `Bristol stool type from the shape they described (${STOOL_TYPES.map(({ bristol, name }) => `${bristol} = ${name.toLowerCase()}`).join(", ")}); null if they didn't describe the shape.`,
+    ),
+  color: z.enum(STOOL_COLORS).nullable().describe("The colour they mentioned; null if they didn't say."),
 });
 
 export const weightDetailsSchema = z.object({
@@ -99,6 +104,9 @@ export type LogDetails<K extends LogKind = LogKind> = z.infer<(typeof LOG_DETAIL
 
 /** One union member per kind, so checking `kind` narrows `details`. */
 type PerKind<T> = { [K in LogKind]: { kind: K; details: LogDetails<K> } & T }[LogKind];
+
+/** Just what was logged (kind + matching details), shared by saved and new entries. */
+export type LogContent = PerKind<object>;
 
 export type LogEntry = PerKind<{
   id: number;

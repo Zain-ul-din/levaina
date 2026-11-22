@@ -1,10 +1,12 @@
-import type { LogEntry, NewLogEntry } from "./types";
+import type { LogEntry, LogKind, NewLogEntry } from "./types";
 
 export type LogRange = {
   /** Inclusive lower bound on loggedAt. */
   since: Date;
   /** Exclusive upper bound on loggedAt; omit for "up to now and beyond". */
   until?: Date;
+  /** Only these kinds; omit for all. */
+  kinds?: readonly LogKind[];
   /** At most this many entries (the newest ones). */
   limit?: number;
 };

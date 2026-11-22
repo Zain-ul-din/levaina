@@ -19,11 +19,16 @@ export class InMemoryLogStore implements LogStore {
     return stored;
   }
 
-  async list(userId: string, { since, until, limit = DEFAULT_LOG_LIMIT }: LogRange) {
+  async list(userId: string, { since, until, kinds, limit = DEFAULT_LOG_LIMIT }: LogRange) {
     return this.rows
       .filter(({ userId: owner, entry }) => {
         const at = Date.parse(entry.loggedAt);
-        return owner === userId && at >= since.getTime() && (!until || at < until.getTime());
+        return (
+          owner === userId &&
+          at >= since.getTime() &&
+          (!until || at < until.getTime()) &&
+          (!kinds || kinds.includes(entry.kind))
+        );
       })
       .map(({ entry }) => entry)
       .sort((a, b) => Date.parse(b.loggedAt) - Date.parse(a.loggedAt) || b.id - a.id)

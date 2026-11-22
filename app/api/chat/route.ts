@@ -5,6 +5,8 @@ import { titleFromMessage } from "@/lib/chats/chat-store";
 import { getChatStore } from "@/lib/chats/get-chat-store";
 import { parseChatRequest, resolveTimeZone } from "@/lib/chat/request";
 import type { ChatMessageMetadata, ChatUIMessage } from "@/lib/chat/types";
+import { getLogStore } from "@/lib/log/get-log-store";
+import { loadLogContext } from "@/lib/log/log-context";
 import { getMemoryStore } from "@/lib/memory/get-memory-store";
 import { getCurrentUserId } from "@/lib/server/current-user";
 import {
@@ -25,18 +27,27 @@ export async function POST(req: Request) {
   if (!body) return Response.json({ error: "Invalid chat request" }, { status: 400 });
   const { id: chatId, message } = body;
 
-  const [userId, store, chatStore] = await Promise.all([getCurrentUserId(), getMemoryStore(), getChatStore()]);
-  const [stored, memories] = await Promise.all([chatStore.load(userId, chatId), store.listActive(userId)]);
+  // Server clock (trustworthy) shown in the device's zone (what the user lives in).
+  const now = new Date();
+  const timeZone = resolveTimeZone(body.timeZone);
+
+  const [userId, memoryStore, logStore, chatStore] = await Promise.all([
+    getCurrentUserId(),
+    getMemoryStore(),
+    getLogStore(),
+    getChatStore(),
+  ]);
+  const [stored, memories, log] = await Promise.all([
+    chatStore.load(userId, chatId),
+    memoryStore.listActive(userId),
+    loadLogContext(logStore, userId, now),
+  ]);
 
   // The server owns the history. A message it already has (retry, regenerate) replaces itself and what followed.
   const history = stored ?? [];
   const existing = history.findIndex((saved) => saved.id === message.id);
   const from = existing === -1 ? history.length : existing;
   const messages = [...history.slice(0, from), message];
-
-  // Server clock (trustworthy) shown in the device's zone (what the user lives in).
-  const now = new Date();
-  const timeZone = resolveTimeZone(body.timeZone);
 
   const stream = createUIMessageStream<ChatUIMessage>({
     originalMessages: messages,
@@ -61,11 +72,13 @@ export async function POST(req: Request) {
       });
 
       const { tools, settings } = await createChatAgent({
-        store,
+        memoryStore,
+        logStore,
         userId,
         timeZone,
         now,
         memories,
+        log,
         conversationSummary: context.summary,
       });
       const result = streamText({

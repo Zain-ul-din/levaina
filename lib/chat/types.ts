@@ -1,3 +1,4 @@
+import type { LogTools } from "@/lib/ai/tools/log-tools";
 import type { MemoryTools } from "@/lib/ai/tools/memory-tools";
 import type { Memory } from "@/lib/memory/types";
 import type { InferUITools, UIMessage } from "ai";
@@ -17,7 +18,7 @@ export type ChatMessageMetadata = {
 export type UsedMemory = Pick<Memory, "id" | "kind" | "content" | "occurredOn">;
 
 /** Every tool the chat agent can call; drives the typed `tool-*` message parts. */
-export type ChatTools = InferUITools<MemoryTools>;
+export type ChatTools = InferUITools<MemoryTools & LogTools>;
 
 /**
  * A compaction marker, streamed as a `data-compaction` part at the top of the reply that
@@ -43,4 +44,19 @@ export type ChatMessagePart = ChatUIMessage["parts"][number];
 export type MemoryToolPart = Extract<
   ChatMessagePart,
   { type: "tool-saveMemory" | "tool-updateMemory" | "tool-forgetMemory" }
+>;
+
+/** Tool names that add an entry to the log. */
+export const LOG_ADD_TOOL_TYPES = [
+  "tool-logMeal",
+  "tool-logSymptom",
+  "tool-logStool",
+  "tool-logWeight",
+  "tool-logNote",
+] as const;
+
+/** Parts produced by the log tools (adding and removing entries). */
+export type LogToolPart = Extract<
+  ChatMessagePart,
+  { type: (typeof LOG_ADD_TOOL_TYPES)[number] | "tool-removeLogEntry" }
 >;
