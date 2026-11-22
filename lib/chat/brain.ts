@@ -24,7 +24,9 @@ export function summarizeBrain(parts: ChatMessagePart[], durations: number[], us
   const count = (type: string) => parts.filter((p) => p.type === type && ok(p)).length;
   const saved = count("tool-saveMemory"), updated = count("tool-updateMemory"), forgotten = count("tool-forgetMemory");
   const visibleThought = parts.some((p) => p.type === "reasoning" && p.text.trim());
-  const logged = parts.filter((p) => (LOG_ADD_TOOL_TYPES as readonly string[]).includes(p.type) && ok(p)).length;
+  const isDuplicate = (p: ChatMessagePart) =>
+    "output" in p && !!p.output && typeof p.output === "object" && "duplicate" in p.output;
+  const logged = parts.filter((p) => (LOG_ADD_TOOL_TYPES as readonly string[]).includes(p.type) && ok(p) && !isDuplicate(p)).length;
   const memoryWork = parts.some((p) => p.type === "tool-saveMemory" || p.type === "tool-updateMemory" || p.type === "tool-forgetMemory");
   const logWork = parts.some((p) => p.type.startsWith("tool-log") || p.type === "tool-removeLogEntry");
   return {

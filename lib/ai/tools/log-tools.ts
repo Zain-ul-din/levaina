@@ -16,8 +16,20 @@ type LogToolsOptions = {
 
 /** What every log tool returns; the chat chip renders it, the model reads it. */
 export type LogToolOutput =
-  | { id: number; kind: LogKind; loggedAt: string; text: string; safetyNote?: string }
+  | {
+      id: number;
+      kind: LogKind;
+      loggedAt: string;
+      text: string;
+      safetyNote?: string;
+      /** This call repeated an earlier one in the same reply; nothing new was saved (the chip hides it). */
+      duplicate?: true;
+    }
   | { error: string };
+
+/** Same kind, same moment, same details (key order ignored) = the same entry. */
+const entryKey = (entry: NewLogEntry) =>
+  JSON.stringify([entry.kind, entry.loggedAt.toISOString(), Object.entries(entry.details).sort(([a], [b]) => a.localeCompare(b))]);
 
 // Required but nullable, like the stool fields: models drop optional fields (a meal "at 1" was
 // saved as "now"), while null has to be chosen on purpose.
@@ -51,10 +63,23 @@ const DESCRIPTIONS = {
  * and all of them are built from the same per-kind schemas in lib/log/types.ts.
  */
 export function createLogTools({ store, userId, timeZone, now }: LogToolsOptions) {
-  const add = async (entry: NewLogEntry): Promise<LogToolOutput> => {
+  const save = async (entry: NewLogEntry): Promise<LogToolOutput> => {
     const saved = await store.add(userId, entry);
     const safetyNote = safetyNoteFor(saved);
     return { id: saved.id, kind: saved.kind, loggedAt: saved.loggedAt, text: describeEntry(saved), ...(safetyNote && { safetyNote }) };
+  };
+
+  // Some models send the same log call twice in one step, in parallel. Remember each save's *promise*
+  // as soon as it starts (before awaiting), so the twin finds it and reuses the result instead of
+  // saving a second row. Scoped to this request, so logging the same meal on another day still works.
+  const savesThisReply = new Map<string, Promise<LogToolOutput>>();
+  const add = (entry: NewLogEntry): Promise<LogToolOutput> => {
+    const key = entryKey(entry);
+    const earlier = savesThisReply.get(key);
+    if (earlier) return earlier.then((output) => ("error" in output ? output : { ...output, duplicate: true as const }));
+    const saving = save(entry);
+    savesThisReply.set(key, saving);
+    return saving;
   };
 
   const logTool = <K extends LogKind>(kind: K) => {

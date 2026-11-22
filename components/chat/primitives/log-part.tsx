@@ -41,6 +41,9 @@ export function LogPart({ part }: LogPartProps) {
     );
   }
 
+  // A repeated call in the same reply saved nothing new; its twin already shows the entry.
+  if ("duplicate" in output && output.duplicate) return null;
+
   return (
     <Marker className="items-start">
       <ExpandableToolText
