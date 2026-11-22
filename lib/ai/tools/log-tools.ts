@@ -19,13 +19,16 @@ export type LogToolOutput =
   | { id: number; kind: LogKind; loggedAt: string; text: string; safetyNote?: string }
   | { error: string };
 
+// Required but nullable, like the stool fields: models drop optional fields (a meal "at 1" was
+// saved as "now"), while null has to be chosen on purpose.
 const atSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
-  .optional()
+  .nullable()
   .describe(
     "When it happened, in the user's local time as YYYY-MM-DDTHH:mm (e.g. '2026-11-22T13:00'). " +
-      "Omit when it's happening now or just happened. For a vague time ('this morning') pick a sensible one.",
+      "Use the time they gave ('at 1' = 13:00 today); for a vague one ('this morning') pick a sensible time. " +
+      "null only if it's happening right now or they gave no time at all.",
   );
 
 const DESCRIPTIONS = {
@@ -57,7 +60,7 @@ export function createLogTools({ store, userId, timeZone, now }: LogToolsOptions
   const logTool = <K extends LogKind>(kind: K) => {
     // TypeScript can't see through a schema picked by a generic key, so state the input type it produces.
     const inputSchema = LOG_DETAILS_SCHEMAS[kind].extend({ at: atSchema }) as unknown as z.ZodType<
-      LogDetails<K> & { at?: string }
+      LogDetails<K> & { at: string | null }
     >;
     return tool({
       description: DESCRIPTIONS[kind],
