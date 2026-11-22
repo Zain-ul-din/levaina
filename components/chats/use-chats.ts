@@ -15,6 +15,8 @@ export function useChats() {
   const [error, setError] = useState<string | null>(null);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  /** When the list was last fetched; "Today" and "Yesterday" are worked out from it (never at render). */
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null);
   const requestRef = useRef<AbortController | null>(null);
 
   const fetchPage = useCallback(async (before?: string) => {
@@ -32,11 +34,23 @@ export function useChats() {
     setError(null);
     try {
       setChats(await fetchPage());
+      setLoadedAt(new Date());
       setStatus("ready");
     } catch (err) {
       if (isAbort(err)) return;
       setError(err instanceof Error ? err.message : "Couldn't load your chats.");
       setStatus("error");
+    }
+  }, [fetchPage]);
+
+  /** Like load, but quietly (no "Loading" flash): for a list that's already showing, e.g. after a reply. */
+  const refresh = useCallback(async () => {
+    try {
+      setChats(await fetchPage());
+      setLoadedAt(new Date());
+      setStatus("ready");
+    } catch {
+      // Keep showing the list we have; the next refresh or open will try again.
     }
   }, [fetchPage]);
 
@@ -68,5 +82,5 @@ export function useChats() {
   // Don't let a late response land after the component is gone.
   useEffect(() => () => requestRef.current?.abort(), []);
 
-  return { chats, status, error, hasMore: nextBefore !== null, isLoadingMore, load, loadMore, remove };
+  return { chats, status, error, loadedAt, hasMore: nextBefore !== null, isLoadingMore, load, refresh, loadMore, remove };
 }

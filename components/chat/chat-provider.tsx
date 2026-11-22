@@ -4,7 +4,8 @@ import { useChat } from "@ai-sdk/react";
 import { useRouter } from "next/navigation";
 import { createChatSession } from "@/lib/chat/chat-transport";
 import type { ChatUIMessage } from "@/lib/chat/types";
-import { createContext, useCallback, useMemo, useState, type ReactNode } from "react";
+import { useChatHistory } from "@/components/chats/chat-history-context";
+import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRequiredContext } from "@/lib/hooks/use-require-context";
 
 type UseChatResult = ReturnType<typeof useChat<ChatUIMessage>>;
@@ -65,6 +66,17 @@ export function ChatProvider({ children, chatId: savedChatId, initialMessages }:
     setSession((value) => value + 1);
     router.push("/");
   }, [stop, router, chatSession]);
+
+  // Tell the chat list (sidebar / drawer) about this chat: its "new chat" while it's on screen
+  // (hidden pages run their cleanup, so the visible chat always wins), and each finished reply.
+  const { registerNewChat, replyFinished } = useChatHistory();
+  useEffect(() => registerNewChat(startNewChat), [registerNewChat, startNewChat]);
+  const previousStatus = useRef(status);
+  useEffect(() => {
+    const wasReplying = previousStatus.current === "submitted" || previousStatus.current === "streaming";
+    previousStatus.current = status;
+    if (wasReplying && status === "ready") replyFinished();
+  }, [status, replyFinished]);
 
   // The functions are stable, so this object only changes when status, error or hasMessages change.
   const actions = useMemo<ChatActions>(
