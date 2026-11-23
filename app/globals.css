@@ -154,14 +154,15 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   /*
-   * Ribbon colours for the sign-in screen only (never inside the chat), across the ribbon's width:
-   * butter, miso, lime, matcha. The one sanctioned departure from "no gradients". Light mode uses
-   * deeper tones so thin strands don't wash out on oat; dark mode uses brighter ones that glow.
+   * Silk ribbon on the sign-in screen only (never inside the chat): vivid fruit colours across
+   * its width (lime, saffron, mango, guava, dragonfruit), blended and lit by the WebGL shader.
+   * The one sanctioned departure from "no gradients".
    */
-  --wave-1: #e3aa2a;
-  --wave-2: #dd6f2c;
-  --wave-3: #93ad2c;
-  --wave-4: #4f6c22;
+  --ribbon-1: #c3e35a;
+  --ribbon-2: #ffc53d;
+  --ribbon-3: #ff7a2f;
+  --ribbon-4: #ff4d8d;
+  --ribbon-5: #a93fe0;
 
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;
@@ -213,10 +214,6 @@
   --saved: #2b3320;
   --saved-foreground: #c4da98;
 
-  --wave-1: #f5cf5c;
-  --wave-2: #f39a5e;
-  --wave-3: #c8df6e;
-  --wave-4: #9fd07a;
 
   --log-meal: #f0a066;
   --log-symptom: #c79bbf;

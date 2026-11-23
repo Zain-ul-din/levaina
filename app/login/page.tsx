@@ -1,17 +1,17 @@
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { LogoMark } from "@/components/brand/logo-mark";
-import { WaveCanvas } from "@/components/brand/wave-canvas";
+import { SilkRibbon } from "@/components/brand/silk-ribbon";
 import { APP_NAME } from "@/lib/brand/brand";
 
 /**
- * Sign-in: a slowly twisting ribbon crosses the bottom-right corner (bottom edge to right edge),
+ * Sign-in: a 3D silk ribbon folds through the bottom-right corner (bottom edge to right edge),
  * behind the content; the logo, welcome and form sit in the upper part and enter once, as one
  * staggered wave (see .enter-rise).
  */
 export default function LoginPage() {
   return (
     <main className="relative flex flex-1 flex-col overflow-hidden bg-background">
-      <WaveCanvas className="pointer-events-none absolute inset-0 size-full" />
+      <SilkRibbon className="pointer-events-none absolute inset-0 size-full" />
 
       <div className="relative mx-auto flex w-full max-w-sm flex-1 flex-col px-4 pt-[max(14dvh,calc(env(safe-area-inset-top)+3rem))] pb-[max(2rem,env(safe-area-inset-bottom))]">
         <span className="enter-rise mb-6 grid size-16 place-items-center rounded-2xl bg-card shadow-soft [--enter-delay:0ms]">
