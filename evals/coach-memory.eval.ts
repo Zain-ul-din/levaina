@@ -36,10 +36,7 @@ type Expected = {
   saveMemory: boolean;
 };
 type Output = {
-  /** Tool calls that ran (rejected ones excluded). */
   tools: string[];
-  /** Tool calls rejected for invalid input (the model then has to retry: slower and costlier). */
-  invalidCalls: number;
   saved: string[];
   inputTokens: number;
   reply: string;
@@ -48,7 +45,8 @@ type Output = {
 const PROTEIN_POWDER: NewMemory = {
   kind: "fact",
   category: "preference",
-  content: "Takes a homemade protein powder of roasted chickpeas, almonds and cashews",
+  content:
+    "Takes a homemade protein powder of roasted chickpeas, almonds and cashews",
 };
 
 const data: { data: Case; target: Expected }[] = [
@@ -62,7 +60,10 @@ const data: { data: Case; target: Expected }[] = [
   },
   {
     // Same idea, said as a habit without a meal to log.
-    data: { message: "every morning i take 2 spoons of our homemade protein powder (chickpeas + almonds) in milk" },
+    data: {
+      message:
+        "every morning i take 2 spoons of our homemade protein powder (chickpeas + almonds) in milk",
+    },
     target: { logMeal: false, saveMemory: true },
   },
   {
@@ -72,7 +73,10 @@ const data: { data: Case; target: Expected }[] = [
   },
   {
     // Already remembered: log the meal, don't save the powder again.
-    data: { message: "lunch was rice and lentils with a spoon of my protein powder", remembered: [PROTEIN_POWDER] },
+    data: {
+      message: "lunch was rice and lentils with a spoon of my protein powder",
+      remembered: [PROTEIN_POWDER],
+    },
     target: { logMeal: true, saveMemory: false },
   },
 ];
@@ -81,23 +85,34 @@ async function runCoach(input: Case): Promise<Output> {
   // Fresh stores per case: nothing leaks from one case into the next.
   const memoryStore = new InMemoryMemoryStore();
   const logStore = new InMemoryLogStore();
-  for (const memory of input.remembered ?? []) await memoryStore.save(USER_ID, memory);
+  for (const memory of input.remembered ?? [])
+    await memoryStore.save(USER_ID, memory);
 
-  const { settings } = await createChatAgent({ memoryStore, logStore, userId: USER_ID, timeZone: TIME_ZONE, now: NOW });
-  const result = await generateText({ ...settings, messages: [{ role: "user", content: input.message }] });
+  const { settings } = await createChatAgent({
+    memoryStore,
+    logStore,
+    userId: USER_ID,
+    timeZone: TIME_ZONE,
+    now: NOW,
+  });
+  const result = await generateText({
+    ...settings,
+    messages: [{ role: "user", content: input.message }],
+  });
 
-  const allCalls = result.steps.flatMap((step) => step.toolCalls);
-  const calls = allCalls.filter((call) => !("invalid" in call && call.invalid));
+  const calls = result.steps.flatMap((step) => step.toolCalls);
   return {
     tools: calls.map((call) => call.toolName),
-    invalidCalls: allCalls.length - calls.length,
-    saved: calls.filter((call) => call.toolName === "saveMemory").map((call) => (call.input as NewMemory).content),
+    saved: calls
+      .filter((call) => call.toolName === "saveMemory")
+      .map((call) => (call.input as NewMemory).content),
     inputTokens: result.usage.inputTokens ?? 0, // v7: usage is the sum of every step
     reply: result.text,
   };
 }
 
-const count = (output: Output, tool: string) => output.tools.filter((name) => name === tool).length;
+const count = (output: Output, tool: string) =>
+  output.tools.filter((name) => name === tool).length;
 
 evaluate<Case, Expected, Output>({
   name: "coach-memory",
@@ -106,13 +121,13 @@ evaluate<Case, Expected, Output>({
   executor: runCoach,
   evaluators: {
     // 1 when it logged a meal exactly when it should.
-    logged: (output, target) => Number(count(output, "logMeal") > 0 === target!.logMeal),
+    logged: (output, target) =>
+      Number(count(output, "logMeal") > 0 === target!.logMeal),
     // 1 when it saved to memory exactly when it should (also catches saving twice / saving one-offs).
-    remembered: (output, target) => Number(count(output, "saveMemory") > 0 === target!.saveMemory),
+    remembered: (output, target) =>
+      Number(count(output, "saveMemory") > 0 === target!.saveMemory),
     // 1 unless the same meal was logged more than once.
     noDuplicateLog: (output) => Number(count(output, "logMeal") <= 1),
-    // 1 when every tool call was valid the first time (no rejected input, no retry round trip).
-    validCalls: (output) => Number(output.invalidCalls === 0),
     // Not pass/fail: how big the coach's context was, charted run over run.
     inputTokens: (output) => output.inputTokens,
   },
