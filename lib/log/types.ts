@@ -60,7 +60,9 @@ export const mealDetailsSchema = z.object({
     .array(shortText(60))
     .max(20)
     .optional()
-    .describe("Each food or drink on its own, in simple words, e.g. ['dal', 'rice', 'raita']."),
+    .describe(
+      "Each food or drink on its own, in a few plain words, e.g. ['dal', 'rice', 'raita']. Split mixtures into their parts: a homemade powder of chickpeas and almonds is ['chickpeas', 'almonds'].",
+    ),
   mealType: z.enum(MEAL_TYPES).optional(),
 });
 
