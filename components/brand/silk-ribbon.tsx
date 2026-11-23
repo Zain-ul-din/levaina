@@ -18,34 +18,37 @@ const ALONG = 200;
 const ACROSS = 44;
 
 type Ribbon = {
-  /** Three colours across the ribbon's width. */
+  /** Three colours across the ribbon's width, from its upper edge to its lower edge. */
   colors: [string, string, string];
-  /** Where the axis passes through, as fractions of the band (0..1, x from left, y from top). */
-  at: [number, number];
-  /** Axis angle in degrees (positive rises to the right). */
-  angle: number;
-  /** Width as a fraction of the band's height. */
+  /** Offset from the band's centre line, across the flow (view units: the band is 2 tall). */
+  offset: number;
+  /** Half-width, in view units. */
   width: number;
-  /** Twist: how many radians it turns along its length, and where it starts. */
-  twist: number;
+  /** Where its twist starts; neighbours are staggered so a twist ripples across the bundle. */
   twistStart: number;
-  /** Depth: nearer ribbons are drawn in front where they cross. */
+  /** Nearer ribbons sit in front where their soft edges overlap. */
   depth: number;
-  /** Phase, so the ribbons don't move in step. */
+  /** Phase, so the ripple travels instead of every ribbon moving in step. */
   phase: number;
 };
 
 /*
- * The composition. Warm sunrise and cool garden ribbons cross; berry sits between them, so where
- * they overlap the colours meet through pink and violet instead of turning muddy; a thin cream
- * ribbon adds a light accent. Fruit and vegetable colours, kept for the sign-in screen only.
+ * The composition: a bundle of ribbons flowing the same way, side by side, like strips of one
+ * fabric. Neighbouring edges share a colour, so the whole bundle reads as one continuous gradient
+ * from top to bottom: berry → sunrise → garden, with a thin cream accent along the slanted cut.
  */
 const RIBBONS: Ribbon[] = [
-  { colors: ["#ffc53d", "#ff7a2f", "#ff4d8d"], at: [0.42, 0.62], angle: 18, width: 0.62, twist: 4.2, twistStart: -0.4, depth: 0.25, phase: 0 },
-  { colors: ["#ff4d8d", "#a93fe0", "#5b6cff"], at: [0.7, 0.4], angle: -14, width: 0.5, twist: 3.6, twistStart: 0.6, depth: -0.1, phase: 2.1 },
-  { colors: ["#c3e35a", "#4fd1a5", "#1fa2b8"], at: [0.25, 0.3], angle: -24, width: 0.46, twist: 4.8, twistStart: 1.4, depth: 0.05, phase: 4.3 },
-  { colors: ["#fff1a8", "#ffd6a0", "#c9b6ff"], at: [0.62, 0.78], angle: 30, width: 0.2, twist: 5.2, twistStart: 0.2, depth: 0.4, phase: 1.2 },
+  { colors: ["#5b6cff", "#a93fe0", "#ff4d8d"], offset: 0.74, width: 0.34, twistStart: -0.35, depth: -0.15, phase: 0.0 },
+  { colors: ["#ff4d8d", "#ff7a2f", "#ffc53d"], offset: 0.26, width: 0.34, twistStart: -0.15, depth: 0.0, phase: 0.5 },
+  { colors: ["#d8ec5a", "#4fd1a5", "#1fa2b8"], offset: -0.2, width: 0.31, twistStart: 0.05, depth: 0.15, phase: 1.0 },
+  { colors: ["#fff1a8", "#ffd6a0", "#c9b6ff"], offset: -0.55, width: 0.14, twistStart: 0.25, depth: 0.3, phase: 1.5 },
 ];
+
+/**
+ * All ribbons share one twist (radians along the visible length): small, so they mostly show their
+ * faces and overlap softly with their neighbours, with a gentle turn rippling through the bundle.
+ */
+const TWIST = 2.1;
 
 const VERTEX = /* glsl */ `
 attribute vec2 a_grid;          // x: 0..1 along, y: -1..1 across
@@ -55,7 +58,7 @@ uniform vec2 u_anchor;          // view units: x in [-aspect, aspect], y in [-1,
 uniform vec2 u_dir;
 uniform float u_span;
 uniform float u_width;
-uniform float u_twist;
+uniform float u_twist;            // shared
 uniform float u_twistStart;
 uniform float u_depth;
 uniform float u_phase;
@@ -67,8 +70,9 @@ vec3 centre(float u) {
   float t = u_time + u_phase;
   vec2 perp = vec2(-u_dir.y, u_dir.x);
   vec2 p = u_anchor + u_dir * (u - 0.5) * u_span;
-  p += perp * (sin(u * 3.14159 + t * 0.12) * 0.18 + sin(u * 5.0 + t * 0.3) * 0.05);
-  float z = u_depth + 0.35 * sin(u * 3.0 + t * 0.2);
+  // A soft, shared bow and a slow swell: the bundle breathes together, it doesn't tangle.
+  p += perp * (sin(u * 3.14159 + u_time * 0.12) * 0.12 + sin(u * 4.0 + t * 0.3) * 0.03);
+  float z = u_depth + 0.12 * sin(u * 3.0 + t * 0.2);
   return vec3(p, z);
 }
 
@@ -78,7 +82,7 @@ vec3 sheet(float u, float v) {
   vec3 tangent = normalize(centre(u + 0.002) - c);
   vec3 n = normalize(cross(tangent, vec3(0.0, 0.0, 1.0)));
   vec3 b = cross(n, tangent);
-  float twist = u_twistStart + u_twist * u + 0.45 * sin(t * 0.17 + u * 2.3);
+  float twist = u_twistStart + u_twist * u + 0.35 * sin(t * 0.17 + u * 2.3);
   float w = u_width * (0.8 + 0.2 * sin(u * 3.14159));
   vec3 side = cos(twist) * n + sin(twist) * b;
   vec3 curl = cross(tangent, side);
@@ -255,13 +259,19 @@ export function SilkRibbon({ className }: { className?: string }) {
       gl.uniform1f(u.aspect, aspect);
       // Long enough to cross the band at any angle, with the ends well off screen.
       gl.uniform1f(u.span, aspect * 2 + 2.4);
+      // The flow follows the band's slanted bottom edge (it rises 28% of the band's height across
+      // the width), a little steeper so it reads as a diagonal sweep toward the top right.
+      const angle = Math.atan((0.28 / aspect) * 1.35);
+      const dir = [Math.cos(angle), Math.sin(angle)];
+      const perp = [-dir[1], dir[0]];
+      // The bundle's centre line sits a little above the middle, clear of the cut.
+      const centre = [0, 0.12];
       const drawRibbon = (i: number) => {
         const ribbon = RIBBONS[i];
-        const rad = (ribbon.angle * Math.PI) / 180;
-        gl.uniform2f(u.anchor, (ribbon.at[0] * 2 - 1) * aspect, 1 - ribbon.at[1] * 2);
-        gl.uniform2f(u.dir, Math.cos(rad), Math.sin(rad));
+        gl.uniform2f(u.anchor, centre[0] + perp[0] * ribbon.offset, centre[1] + perp[1] * ribbon.offset);
+        gl.uniform2f(u.dir, dir[0], dir[1]);
         gl.uniform1f(u.width, ribbon.width);
-        gl.uniform1f(u.twist, ribbon.twist);
+        gl.uniform1f(u.twist, TWIST);
         gl.uniform1f(u.twistStart, ribbon.twistStart);
         gl.uniform1f(u.depth, ribbon.depth);
         gl.uniform1f(u.phase, ribbon.phase);
