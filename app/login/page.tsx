@@ -39,7 +39,7 @@ export default function LoginPage() {
           "shadow-[0_18px_40px_rgb(43_38_32/0.18)] sm:max-w-md sm:self-start lg:w-[calc(50vw-1rem)] lg:max-w-none lg:self-center",
           "supports-backdrop-filter:bg-(--glass-panel) supports-backdrop-filter:backdrop-blur-[22px] supports-backdrop-filter:backdrop-saturate-[1.4]",
           "[@media(prefers-reduced-transparency:reduce)]:bg-background!",
-          "[--muted-foreground:var(--glass-muted)] [&_input]:bg-(--glass-field)",
+          "[--muted-foreground:var(--glass-muted)] [&_input]:bg-(--glass-field) [&_input]:placeholder:text-(--glass-placeholder)",
         ].join(" ")}
       >
         <div className="mx-auto flex w-full max-w-[26rem] tall-desktop:max-w-[30rem] my-auto flex-col">

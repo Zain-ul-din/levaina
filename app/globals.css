@@ -166,6 +166,8 @@
   --glass-edge: rgb(255 255 255 / 0.55);
   --glass-muted: #423c33;
   --glass-field: rgb(255 255 255 / 0.7);
+  /* Placeholders: a hint, so clearly dimmer than typed text but still readable. */
+  --glass-placeholder: rgb(66 60 51 / 0.6);
 
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;
@@ -222,6 +224,7 @@
   --glass-edge: rgb(255 255 255 / 0.14);
   --glass-muted: rgb(246 243 234 / 0.86);
   --glass-field: rgb(255 255 255 / 0.1);
+  --glass-placeholder: rgb(246 243 234 / 0.5);
 
   --log-meal: #f0a066;
   --log-symptom: #c79bbf;

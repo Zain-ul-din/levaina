@@ -102,7 +102,7 @@ export function SignInForm() {
         maxLength={6}
         required
         autoFocus
-        placeholder="123456"
+        placeholder="••••••"
         value={code}
         onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
         className={`${FIELD} text-center text-xl tracking-[0.4em] md:text-xl`}
@@ -112,7 +112,8 @@ export function SignInForm() {
           {error}
         </p>
       )}
-      <Button type="submit" disabled={busy || code.length !== 6} className={SUBMIT}>
+      {/* Pressable like "Send me a code": the field's required 6-digit pattern refuses anything else. */}
+      <Button type="submit" disabled={busy} className={SUBMIT}>
         {busy ? "Checking…" : "Sign in"}
       </Button>
       <div className="flex justify-between text-sm">
