@@ -22,19 +22,19 @@ const AROUND = 32;
 const PIPE_COLORS = ["#5b6cff", "#ff4d8d", "#ff7a2f", "#ffc53d", "#9fd04a"];
 
 /** Distance from the rope's axis to each pipe's centre, in view units (the band is 2 tall). */
-const ROPE_RADIUS = 0.3;
+const ROPE_RADIUS = 0.34;
 /** Pipes a little thinner than would touch, leaving room for each to surge and lag on its own. */
-const PIPE_RADIUS = ROPE_RADIUS * Math.sin(Math.PI / PIPE_COLORS.length) * 0.82;
+const PIPE_RADIUS = ROPE_RADIUS * Math.sin(Math.PI / PIPE_COLORS.length) * 0.62;
 /**
  * How far (radians round the rope) a pipe may slip ahead of or behind its place. Kept under half
  * the free angle between neighbours, so even two neighbours slipping toward each other can't touch.
  */
 const SURGE = (() => {
   const free = (Math.PI * 2) / PIPE_COLORS.length - 2 * Math.asin(PIPE_RADIUS / ROPE_RADIUS);
-  return free * 0.45;
+  return free * 0.48;
 })();
 /** Each pipe's own surge speed and timing, so no two move in step. */
-const SURGE_SPEEDS = [0.9, 1.45, 0.7, 1.2, 1.7];
+const SURGE_SPEEDS = [0.55, 1.6, 0.85, 2.1, 1.2];
 const SURGE_PHASES = [0.0, 2.3, 4.1, 1.1, 5.2];
 /** Turns of the rope along its whole length (most of it is visible). */
 const TWIST = 2.2 * Math.PI * 2;
@@ -71,8 +71,9 @@ vec3 strand(float u) {
   vec3 up = cross(side, tangent);
   // The shared turn, plus this pipe's own surge and lag (varying along its length too),
   // so each strand looks like it moves on its own.
-  float a = u_strand + u * u_twist + u_time * 0.35
-          + u_surge * sin(u_time * u_surgeSpeed + u * 2.5 + u_surgePhase);
+  // Minus: the twist travels toward the top right, the way the rope points.
+  float a = u_strand + u * u_twist - u_time * 0.35
+          + u_surge * sin(u_time * u_surgeSpeed + u * 3.5 + u_surgePhase);
   return c + u_ropeRadius * (cos(a) * side + sin(a) * up);
 }
 
