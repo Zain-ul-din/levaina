@@ -13,6 +13,10 @@
  * otherwise from the device setting. Its inline script applies it before first paint (no flash).
  */
 @custom-variant dark (&:where(.dark, .dark *));
+/* Big desktop windows (1920×1080 and up): one size step up so tall layouts don't look sparse. */
+@custom-variant tall-desktop (@media (min-width: 64rem) and (min-height: 60rem));
+/* Short phones (iPhone SE and similar): trims so the sign-in card fits without scrolling. */
+@custom-variant short (@media (max-height: 46.25rem));
 
 /*
  * Thin, arrow-less scrollbar that stays out of the way:
