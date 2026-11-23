@@ -79,10 +79,12 @@ export function SignInForm() {
             {error}
           </p>
         )}
-        <Button type="submit" disabled={busy || !email.trim()} className={SUBMIT}>
+        {/* Always pressable (only paused while sending): the required email field already refuses
+            an empty or invalid address, and a greyed-out button over glass is hard to read. */}
+        <Button type="submit" disabled={busy} className={SUBMIT}>
           {busy ? "Sending…" : "Send me a code"}
         </Button>
-        <p className="text-center text-sm text-muted-foreground">No password needed. We&apos;ll email you a 6-digit code.</p>
+        <p className="text-center text-sm text-balance text-muted-foreground">No password needed. We&apos;ll email you a 6-digit code.</p>
       </form>
     );
   }

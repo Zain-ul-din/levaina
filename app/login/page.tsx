@@ -1,4 +1,5 @@
 import { SignInForm } from "@/components/auth/sign-in-form";
+import { SignInPromises } from "@/components/auth/sign-in-promises";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { APP_NAME } from "@/lib/brand/brand";
 import Image from "next/image";
@@ -42,13 +43,16 @@ export default function LoginPage() {
           <LogoMark className="size-7 text-primary" />
           <span className="font-display text-xl font-semibold tracking-tight">{APP_NAME}</span>
         </div>
-        <h1 className="enter-rise font-display text-[1.75rem] leading-[1.15] font-semibold tracking-tight text-balance [--enter-delay:60ms]">
+        <h1 className="enter-rise font-display text-[2rem] leading-[1.12] font-semibold tracking-tight text-balance [--enter-delay:60ms]">
           Every good day starts somewhere
         </h1>
         <p className="enter-rise mt-2.5 text-[0.9375rem] text-muted-foreground [--enter-delay:110ms]">
           Food that agrees with your gut, and a weight you&apos;re happy with.
         </p>
-        <div className="enter-rise mt-auto pt-8 [--enter-delay:150ms]">
+        {/* The middle of the tall card: what the app does, centred in the space between the words
+            above and the form below, so the card has no dead gap on any phone. */}
+        <SignInPromises className="enter-rise my-auto py-7 [--enter-delay:130ms]" />
+        <div className="enter-rise [--enter-delay:170ms]">
           <SignInForm />
         </div>
       </section>
