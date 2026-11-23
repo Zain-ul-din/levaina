@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { TraceLine, TraceTitle } from "@/components/ui/trace";
 import type { ChatSummary } from "@/lib/chats/chat-store";
+import { chatTimeLabel } from "@/lib/chats/chat-time";
 import { groupChatsByRecency } from "@/lib/chats/group-chats";
 import { cn } from "@/lib/utils";
 import { NotePencilIcon, TrashSimpleIcon } from "@phosphor-icons/react";
@@ -46,20 +47,22 @@ export function ChatHistoryList({ history, onDone }: ChatHistoryListProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="px-2 pb-2">
+      {/* The main action: a filled pill whose edges line up with the header (20px in). */}
+      <div className="px-5 pt-2 pb-3">
         <button
           type="button"
           onClick={newChat}
-          className="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-[0.95rem] font-medium outline-none hover:bg-card focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="pressable flex h-12 w-full items-center gap-3 rounded-full bg-card px-4 text-[0.95rem] font-medium shadow-soft outline-none hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <NotePencilIcon className="size-[18px]" />
+          <NotePencilIcon weight="duotone" className="size-5 text-primary" />
           New chat
         </button>
       </div>
 
       <nav
         aria-label="Past chats"
-        className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto px-2 pb-[max(1rem,env(safe-area-inset-bottom))]"
+        // No scrollbar gutter: delete buttons line up under the header's close button on every device.
+        className="scrollbar-none min-h-0 flex-1 overflow-y-auto px-2 pb-[max(1rem,env(safe-area-inset-bottom))]"
       >
         {error && (
           <p role="alert" className="px-3 py-2 text-sm text-destructive">
@@ -81,14 +84,15 @@ export function ChatHistoryList({ history, onDone }: ChatHistoryListProps) {
         {status === "ready" &&
           loadedAt &&
           groupChatsByRecency(chats, loadedAt).map((group) => (
-            <section key={group.label} className="mt-4 first:mt-1">
-              <h3 className="px-3 pb-1 text-xs font-medium text-muted-foreground">{group.label}</h3>
+            <section key={group.label} className="mt-5 first:mt-2">
+              <h3 className="px-3 pb-1.5 text-[0.8125rem] font-medium text-muted-foreground">{group.label}</h3>
               <ul className="flex flex-col gap-0.5">
                 {group.chats.map((chat) => (
                   <ChatRow
                     key={chat.id}
                     chat={chat}
                     isActive={chat.id === activeId}
+                    when={chatTimeLabel(chat.updatedAt, loadedAt)}
                     onOpen={() => onDone?.()}
                     onDelete={() => deleteChat(chat)}
                   />
@@ -114,12 +118,14 @@ export function ChatHistoryList({ history, onDone }: ChatHistoryListProps) {
 type ChatRowProps = {
   chat: ChatSummary;
   isActive: boolean;
+  /** When it was last used, already shortened for its group (a time, weekday or date). */
+  when: string;
   onOpen: () => void;
   onDelete: () => void;
 };
 
 /** A chat's title as a link; deleting asks first in place, because it can't be undone. */
-function ChatRow({ chat, isActive, onOpen, onDelete }: ChatRowProps) {
+function ChatRow({ chat, isActive, when, onOpen, onDelete }: ChatRowProps) {
   const [confirming, setConfirming] = useState(false);
 
   if (confirming) {
@@ -129,11 +135,16 @@ function ChatRow({ chat, isActive, onOpen, onDelete }: ChatRowProps) {
         <p className="text-sm leading-snug">
           Delete <span className="font-medium">{chat.title}</span>? This can&apos;t be undone.
         </p>
+        {/* Thumb-sized; Delete is solid red because this is the step that can't be undone. */}
         <div className="flex gap-2">
-          <Button variant="destructive" size="sm" onClick={onDelete} autoFocus>
+          <Button
+            onClick={onDelete}
+            autoFocus
+            className="h-10 rounded-full bg-destructive px-5 text-primary-foreground hover:bg-destructive/90"
+          >
             Delete
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+          <Button variant="ghost" onClick={() => setConfirming(false)} className="h-10 rounded-full px-5">
             Cancel
           </Button>
         </div>
@@ -152,21 +163,24 @@ function ChatRow({ chat, isActive, onOpen, onDelete }: ChatRowProps) {
         }}
         aria-current={isActive ? "page" : undefined}
         className={cn(
-          "flex h-11 items-center rounded-xl pr-10 pl-3 text-[0.95rem] outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-          isActive ? "bg-card font-medium shadow-soft" : "hover:bg-card/70",
+          // pr-14: room for the delete button, so a long title stops before it.
+          "flex min-h-14 flex-col justify-center rounded-xl py-2 pr-14 pl-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          isActive ? "bg-card shadow-soft" : "hover:bg-card/70",
         )}
       >
-        <span className="truncate">{chat.title}</span>
+        <span className={cn("truncate text-[0.95rem] leading-snug", isActive && "font-medium")}>{chat.title}</span>
+        <span className="text-xs leading-snug text-muted-foreground">{when}</span>
       </Link>
+      {/* Red: it deletes. Visible on touch screens (no hover); on desktop on hover or keyboard focus.
+          right-3: its centre sits 40px from the edge, under the header's close button. */}
       <Button
         variant="ghost"
-        size="icon-xs"
-        // Visible on hover and keyboard focus; always visible on touch screens (no hover).
-        className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground opacity-100 pointer-fine:opacity-0 pointer-fine:group-hover/chat:opacity-100 focus-visible:opacity-100"
+        size="icon"
+        className="absolute top-1/2 right-3 size-10 -translate-y-1/2 rounded-full text-destructive opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 pointer-fine:opacity-0 pointer-fine:group-hover/chat:opacity-100 [&_svg]:size-[18px]"
         aria-label={`Delete chat: ${chat.title}`}
         onClick={() => setConfirming(true)}
       >
-        <TrashSimpleIcon />
+        <TrashSimpleIcon weight="duotone" />
       </Button>
     </li>
   );

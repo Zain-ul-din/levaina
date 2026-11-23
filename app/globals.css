@@ -22,6 +22,15 @@
  * Thin, arrow-less scrollbar that stays out of the way:
  * invisible at rest, appears while hovering the scroll area, hides during auto-scroll.
  */
+/* Scrolls by touch, trackpad, wheel and keyboard, with no scrollbar taking width: lists whose
+   right edge must line up exactly with controls above them (no gutter on any platform). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility scrollbar-subtle {
   scrollbar-gutter: stable;
 
@@ -136,7 +145,8 @@
   --secondary: #eae5d8;
   --secondary-foreground: #2b2620;
   --muted: #eae5d8;
-  --muted-foreground: #7e776b;
+  /* 4.5:1+ on background, sidebar and cards, so small secondary text stays readable. */
+  --muted-foreground: #6e675b;
   --accent: #eae5d8;
   --accent-foreground: #2b2620;
   --destructive: #c2452d;

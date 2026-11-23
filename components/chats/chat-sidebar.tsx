@@ -29,14 +29,14 @@ export function ChatSidebar() {
       className="hidden h-dvh w-72 shrink-0 flex-col border-r border-sidebar-border bg-sidebar pt-[env(safe-area-inset-top)] lg:flex"
     >
       {/* Same height as the chat header, so both top edges line up. */}
-      <div className="flex h-16 shrink-0 items-center px-6">
+      <div className="flex h-16 shrink-0 items-center px-5">
         <h2 className="font-display text-xl font-semibold tracking-tight">Your chats</h2>
       </div>
       {/* The list reads the URL (to highlight the open chat), which Next only allows inside Suspense;
           the rest of the layout is pre-rendered. The fallback matches the list's own first state. */}
       <Suspense
         fallback={
-          <div className="px-6 py-2">
+          <div className="px-5 py-2">
             <TraceLine status="running">
               <TraceTitle>Loading</TraceTitle>
             </TraceLine>
