@@ -4,9 +4,9 @@ import { LogoMark } from "@/components/brand/logo-mark";
 import { APP_NAME } from "@/lib/brand/brand";
 
 /**
- * Sign-in: a solid matcha band with a slanted bottom edge and a cream line illustration (sun out
- * of a bowl, a flowing line, leaves, levain bubbles), then the logo, welcome and form. The content
- * enters once, as one staggered wave (.enter-rise).
+ * Sign-in: a quiet tone-on-tone band with a slanted bottom edge and a minimal trail climbing to
+ * a small matcha goal, then the logo, welcome and form. The content enters once, as one staggered
+ * wave (.enter-rise).
  */
 export default function LoginPage() {
   return (

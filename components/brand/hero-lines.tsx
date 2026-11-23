@@ -1,39 +1,25 @@
 import { cn } from "@/lib/utils";
 
 /*
- * Line illustration for the sign-in band: crisp single-weight strokes on a solid colour.
- * Every mark means something:
- *   - the sun rising out of a bowl (the logo's idea), with rings and short rays
- *   - one long flowing line across the band: digestion, and the journey you're on
- *   - leaves along that line: food and growth
- *   - small bubbles by the bowl: the levain (sourdough starter) in the name
- * Strokes don't scale with the drawing (vector-effect), so they stay sharp at any size, and the
- * composition is centred on the bowl, so a phone's narrower crop still keeps the meaning.
+ * A minimal trail for the sign-in band: one dashed path winding up from the bottom left in a few
+ * gentle switchbacks to a small matcha dot (the goal), with three faint contour lines around it,
+ * like a footpath climbing a hill on a map. The dashes drift slowly toward the goal (.trail-walk).
+ *
+ * Strokes don't scale with the drawing, so they stay hairline-sharp at any size. The composition
+ * keeps the goal near the centre, so a phone's narrower crop still shows where the trail leads.
  */
 
-const LEAF = "M0 0 C12 -16 34 -16 46 0 C34 16 12 16 0 0 Z M0 0 L46 0";
-const RAY_ANGLES = [30, 55, 80, 105, 130, 150];
-const SUN = { x: 620, y: 192 };
+const GOAL = { x: 700, y: 120 };
 
-const ray = (deg: number) => {
-  const rad = (deg * Math.PI) / 180;
-  const from = 138;
-  const to = 156;
-  return `M${SUN.x + Math.cos(rad) * from} ${SUN.y - Math.sin(rad) * from} L${SUN.x + Math.cos(rad) * to} ${SUN.y - Math.sin(rad) * to}`;
-};
+/** Contour rings round the goal: slightly irregular, so they read as land, not targets. */
+const CONTOURS = [
+  "M640 120 C640 84 668 70 702 72 C738 74 762 94 760 122 C758 150 730 166 698 164 C664 162 640 150 640 120 Z",
+  "M590 124 C586 70 640 36 706 38 C776 40 820 80 816 128 C812 180 760 206 698 204 C632 202 594 176 590 124 Z",
+  "M536 130 C528 52 610 0 712 4 C812 8 878 66 872 134 C866 206 794 250 700 248 C604 246 544 204 536 130 Z",
+];
 
-/** Each line draws itself in once, in order (see .line-draw); --d is its start delay. */
-function Line({ d, delay, className, ...rest }: { d: string; delay: number; className?: string } & React.SVGProps<SVGPathElement>) {
-  return (
-    <path
-      d={d}
-      pathLength={1}
-      className={cn("line-draw", className)}
-      style={{ "--d": `${delay}ms` } as React.CSSProperties}
-      {...rest}
-    />
-  );
-}
+const TRAIL =
+  "M-40 410 C80 360 170 380 250 330 S330 250 420 270 S560 300 600 230 S600 150 650 138 S688 126 700 120";
 
 export function HeroLines({ className }: { className?: string }) {
   return (
@@ -43,69 +29,38 @@ export function HeroLines({ className }: { className?: string }) {
       aria-hidden="true"
       className={cn("block", className)}
       fill="none"
-      stroke="var(--hero-line)"
-      strokeWidth={1.6}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <g vectorEffect="non-scaling-stroke" style={{ vectorEffect: "non-scaling-stroke" }}>
-        {/* The journey: one unbroken line from edge to edge, passing behind the sun. */}
-        <Line
-          delay={0}
-          d="M-20 150 C110 70 230 230 360 170 S520 60 600 120 S780 230 900 160 S1080 60 1220 110"
-        />
-
-        {/* Leaves along the journey. */}
-        <g transform="translate(318 186) rotate(-32)">
-          <Line delay={260} d={LEAF} />
-        </g>
-        <g transform="translate(860 176) rotate(18)">
-          <Line delay={320} d={LEAF} />
-        </g>
-        <g transform="translate(1030 96) rotate(-14) scale(0.8)">
-          <Line delay={380} d={LEAF} />
-        </g>
-
-        {/* The bowl. */}
-        <Line delay={120} d="M520 206 H720 C720 252 676 282 620 282 C564 282 520 252 520 206 Z" />
-        <Line delay={160} d="M596 282 L600 298 H640 L644 282" />
-
-        {/* The sun rising out of it: a half disc, two rings, short rays (the one warm accent). */}
-        <g stroke="var(--hero-accent)">
-          <Line delay={220} d={`M${SUN.x - 64} ${SUN.y} A64 64 0 0 1 ${SUN.x + 64} ${SUN.y}`} />
-          <Line delay={300} d={`M${SUN.x - 98} ${SUN.y} A98 98 0 0 1 ${SUN.x + 98} ${SUN.y}`} />
-          <Line
-            delay={360}
-            d={`M${SUN.x - 128} ${SUN.y} A128 128 0 0 1 ${SUN.x + 128} ${SUN.y}`}
-            strokeDasharray="0.012 0.02"
-          />
-          {RAY_ANGLES.map((deg, i) => (
-            <Line key={deg} delay={420 + i * 30} d={ray(deg)} />
-          ))}
-        </g>
-
-        {/* Levain bubbles rising beside the bowl. */}
-        {[
-          [778, 200, 7],
-          [800, 172, 4.5],
-          [774, 150, 3],
-          [462, 196, 5],
-          [444, 170, 3],
-        ].map(([cx, cy, r], i) => (
-          <circle key={i} cx={cx} cy={cy} r={r} className="line-fade" style={{ "--d": `${520 + i * 40}ms` } as React.CSSProperties} />
-        ))}
-
-        {/* A few seeds scattered along the left, for texture. */}
-        {[
-          [140, 250],
-          [176, 272],
-          [214, 246],
-          [1110, 210],
-          [1146, 232],
-        ].map(([cx, cy], i) => (
-          <circle key={i} cx={cx} cy={cy} r={1.6} fill="var(--hero-line)" stroke="none" className="line-fade" style={{ "--d": `${600 + i * 30}ms` } as React.CSSProperties} />
+      {/* Contours: barely there, just enough to suggest a hill. */}
+      <g stroke="var(--hero-line)" strokeOpacity={0.16} strokeWidth={1}>
+        {CONTOURS.map((d) => (
+          <path key={d} d={d} style={{ vectorEffect: "non-scaling-stroke" }} />
         ))}
       </g>
+
+      {/* The trail: short dashes, drifting toward the goal. */}
+      <path
+        d={TRAIL}
+        stroke="var(--hero-line)"
+        strokeOpacity={0.55}
+        strokeWidth={1.5}
+        strokeDasharray="6 9"
+        className="trail-walk"
+        style={{ vectorEffect: "non-scaling-stroke" }}
+      />
+
+      {/* The goal. */}
+      <circle
+        cx={GOAL.x}
+        cy={GOAL.y}
+        r={11}
+        stroke="var(--hero-accent)"
+        strokeOpacity={0.45}
+        strokeWidth={1.2}
+        style={{ vectorEffect: "non-scaling-stroke" }}
+      />
+      <circle cx={GOAL.x} cy={GOAL.y} r={4.5} fill="var(--hero-accent)" />
     </svg>
   );
 }

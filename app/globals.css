@@ -154,10 +154,10 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
 
-  /* Sign-in band: a solid deep matcha with cream line drawings; the sun is the one warm accent. */
-  --hero-bg: #55702a;
-  --hero-line: #f3f0e7;
-  --hero-accent: #f2c94c;
+  /* Sign-in band: quiet tone-on-tone (oat a shade deeper than the page), an ink trail, a matcha goal. */
+  --hero-bg: #e9e3d4;
+  --hero-line: #2b2620;
+  --hero-accent: #5e7a2e;
 
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;
@@ -210,9 +210,9 @@
   --saved-foreground: #c4da98;
 
 
-  --hero-bg: #26321b;
-  --hero-line: #dfe8c8;
-  --hero-accent: #e9c45a;
+  --hero-bg: #211f1a;
+  --hero-line: #efebe1;
+  --hero-accent: #a9c46e;
 
   --log-meal: #f0a066;
   --log-symptom: #c79bbf;
@@ -310,24 +310,19 @@ html[data-splash="off"] .splash {
 }
 
 /*
- * Sign-in line illustration: each stroke draws itself in once (pathLength=1, so the dash covers
- * the whole stroke), staggered by --d; small marks just fade. Reduced motion shows it finished.
+ * Sign-in trail: its dashes drift slowly toward the goal, like footsteps. One dash + gap (15) per
+ * cycle, so the loop is seamless. Reduced motion: still.
  */
-@keyframes line-draw {
-  from {
-    stroke-dashoffset: 1;
+@keyframes trail-walk {
+  to {
+    stroke-dashoffset: -15;
   }
 }
-.line-draw:not([stroke-dasharray]) {
-  stroke-dasharray: 1;
-  animation: line-draw 1100ms var(--ease-out) var(--d, 0ms) both;
-}
-.line-fade,
-.line-draw[stroke-dasharray] {
-  animation: enter-fade 600ms var(--ease-out) var(--d, 0ms) both;
+.trail-walk {
+  animation: trail-walk 1.6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .line-draw:not([stroke-dasharray]) {
+  .trail-walk {
     animation: none;
   }
 }
