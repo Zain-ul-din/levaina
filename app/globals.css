@@ -154,14 +154,14 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   /*
-   * Wave colours for the sign-in screen and splash only (never inside the chat): butter, miso,
-   * lime, matcha and cream, blended by the canvas. The one sanctioned departure from "no gradients".
+   * Ribbon colours for the sign-in screen only (never inside the chat), across the ribbon's width:
+   * butter, miso, lime, matcha. The one sanctioned departure from "no gradients". Light mode uses
+   * deeper tones so thin strands don't wash out on oat; dark mode uses brighter ones that glow.
    */
-  --wave-1: #f2c94c;
-  --wave-2: #e8904a;
-  --wave-3: #b8cc4a;
-  --wave-4: #6f8f33;
-  --wave-5: #fffdf7;
+  --wave-1: #e3aa2a;
+  --wave-2: #dd6f2c;
+  --wave-3: #93ad2c;
+  --wave-4: #4f6c22;
 
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;
@@ -213,11 +213,10 @@
   --saved: #2b3320;
   --saved-foreground: #c4da98;
 
-  --wave-1: #6e5a1e;
-  --wave-2: #7a4423;
-  --wave-3: #4d5a1c;
-  --wave-4: #33451a;
-  --wave-5: #23211b;
+  --wave-1: #f5cf5c;
+  --wave-2: #f39a5e;
+  --wave-3: #c8df6e;
+  --wave-4: #9fd07a;
 
   --log-meal: #f0a066;
   --log-symptom: #c79bbf;
