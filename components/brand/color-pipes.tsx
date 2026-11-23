@@ -33,8 +33,12 @@ const SURGE = (() => {
   const free = (Math.PI * 2) / PIPE_COLORS.length - 2 * Math.asin(PIPE_RADIUS / ROPE_RADIUS);
   return free * 0.48;
 })();
-/** Each pipe's own surge speed and timing, so no two move in step. */
-const SURGE_SPEEDS = [0.55, 1.6, 0.85, 2.1, 1.2];
+/**
+ * How often each pipe's spacing swells along the rope (per turn of the twist). Different for every
+ * pipe so gaps open and close unevenly; small enough (surge × this < 1) that no pipe ever stalls
+ * or moves backwards: every strand always flows forward, at a speed that varies by at most ~20%.
+ */
+const SURGE_SPEEDS = [0.45, 0.8, 0.55, 0.7, 0.35];
 const SURGE_PHASES = [0.0, 2.3, 4.1, 1.1, 5.2];
 /** Turns of the rope along its whole length (most of it is visible). */
 const TWIST = 2.2 * Math.PI * 2;
@@ -51,7 +55,7 @@ uniform float u_pipeRadius;
 uniform float u_twist;
 uniform float u_strand;           // this pipe's starting angle round the rope
 uniform float u_surge;            // how far it may slip ahead or behind
-uniform float u_surgeSpeed;       // its own pace
+uniform float u_surgeSpeed;       // how often its spacing swells along the rope
 uniform float u_surgePhase;       // and timing
 varying vec3 v_normal;
 
@@ -71,9 +75,11 @@ vec3 strand(float u) {
   vec3 up = cross(side, tangent);
   // The shared turn, plus this pipe's own surge and lag (varying along its length too),
   // so each strand looks like it moves on its own.
-  // Minus: the twist travels toward the top right, the way the rope points.
-  float a = u_strand + u * u_twist - u_time * 0.35
-          + u_surge * sin(u_time * u_surgeSpeed + u * 3.5 + u_surgePhase);
+  // One steady flow for the whole rope; minus = it travels toward the top right.
+  float flow = u * u_twist - u_time * 0.35;
+  // Uneven spacing that rides along with the flow (not on its own clock), so it never stalls a
+  // strand: every pipe keeps moving forward at a steady pace while the gaps travel with it.
+  float a = u_strand + flow + u_surge * sin(flow * u_surgeSpeed + u_surgePhase);
   return c + u_ropeRadius * (cos(a) * side + sin(a) * up);
 }
 
