@@ -1,21 +1,18 @@
 "use client";
 
-import { FloatingIconButton } from "@/components/brand/floating-icon-button";
+import { AccountMenu } from "@/components/auth/account-menu";
 import { ChatHistorySheet } from "@/components/chats/chat-history-sheet";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { APP_NAME } from "@/lib/brand/brand";
 import { MemoriesSheet } from "@/components/memories/memories-sheet";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { NotePencilIcon } from "@phosphor-icons/react";
-import { useChatActions } from "./chat-provider";
 
 /**
  * Top bar: past chats at the far left (where ChatGPT and Claude keep it), then logo and serif wordmark;
- * theme, memories and new chat as floating round buttons on the right.
+ * theme, memories and your account as floating round buttons on the right. New chat lives in the
+ * chat list (sidebar on desktop, drawer on phones).
  */
 export function ChatHeader() {
-  const { hasMessages, startNewChat } = useChatActions();
-
   return (
     // Top padding = the safe-area inset, so the bar sits below the notch / status bar in the app.
     <header className="shrink-0 pt-[env(safe-area-inset-top)]">
@@ -29,9 +26,7 @@ export function ChatHeader() {
         <div className="ml-auto flex items-center gap-2.5">
           <ThemeToggle />
           <MemoriesSheet />
-          <FloatingIconButton aria-label="New chat" disabled={!hasMessages} onClick={startNewChat}>
-            <NotePencilIcon />
-          </FloatingIconButton>
+          <AccountMenu />
         </div>
       </div>
     </header>
