@@ -2,6 +2,7 @@ import { model } from "@/lib/ai/models";
 import { buildSystemInstructions } from "@/lib/ai/system-instructions";
 import { createLogTools } from "@/lib/ai/tools/log-tools";
 import { createMemoryTools } from "@/lib/ai/tools/memory-tools";
+import { traced, type TraceContext } from "@/lib/ai/telemetry";
 import { loadLogContext, type LogContext } from "@/lib/log/log-context";
 import type { LogStore } from "@/lib/log/log-store";
 import type { MemoryStore } from "@/lib/memory/memory-store";
@@ -23,6 +24,8 @@ type ChatAgentOptions = {
   log?: LogContext;
   /** Running summary of older, compacted messages in this chat. */
   conversationSummary?: string | null;
+  /** The user and chat, for tracing. Optional: offline evals have no chat. */
+  trace?: TraceContext;
 };
 
 /**
@@ -36,6 +39,7 @@ export async function createChatAgent({
   timeZone,
   now = new Date(),
   conversationSummary = null,
+  trace,
   ...options
 }: ChatAgentOptions) {
   const [memories, log] = await Promise.all([
@@ -63,6 +67,7 @@ export async function createChatAgent({
       // Prompting alone let the model skip saving in long conversations (~1 in 3 turns).
       prepareStep: ({ stepNumber }: { stepNumber: number }) =>
         stepNumber === 0 ? { toolChoice: "required" as const } : undefined,
+      ...traced("coach-reply", trace),
     },
   };
 }

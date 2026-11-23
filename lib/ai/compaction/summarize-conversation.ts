@@ -5,6 +5,7 @@ import type { ChatUIMessage } from "@/lib/chat/types";
 import { formatMemories } from "@/lib/memory/format-memories";
 import type { Memory } from "@/lib/memory/types";
 import { generateText } from "ai";
+import { traced, type TraceContext } from "@/lib/ai/telemetry";
 
 const instructions = `
 You keep the running summary of a chat between a gut-and-weight coach and a user. Older messages are being removed from the coach's view, so your summary is all the coach will know about them.
@@ -21,6 +22,8 @@ Write short bullet points under these headings, skipping any that are empty: "Ad
 `.trim();
 
 type SummarizeOptions = {
+  /** The user and chat, for tracing. */
+  trace?: TraceContext;
   previousSummary: string | null;
   /** The messages being folded into the summary, oldest first. */
   messages: ChatUIMessage[];
@@ -45,9 +48,10 @@ function transcript(messages: ChatUIMessage[]) {
 }
 
 /** A separate model call with its own prompt: turns old messages into the chat's running summary. */
-export async function summarizeConversation({ previousSummary, messages, memories, now, timeZone }: SummarizeOptions) {
+export async function summarizeConversation({ previousSummary, messages, memories, now, timeZone, trace }: SummarizeOptions) {
   const { text } = await generateText({
     model: summaryModel,
+    ...traced("conversation-summary", trace),
     instructions,
     prompt: [
       `Today is ${formatNow(now, timeZone)}.`,

@@ -1,4 +1,5 @@
 import type { ChatUIMessage, CompactionData } from "@/lib/chat/types";
+import type { TraceContext } from "@/lib/ai/telemetry";
 import type { Memory } from "@/lib/memory/types";
 import { latestCompaction, messagesAfter, planCompaction, pruneForModel } from "./context-window";
 import { summarizeConversation } from "./summarize-conversation";
@@ -10,13 +11,15 @@ type BuildContextOptions = {
   timeZone: string;
   /** Reports compaction progress, so the UI can show the divider while it runs. */
   onCompaction: (data: CompactionData) => void;
+  /** The user and chat, for tracing the summary call. */
+  trace?: TraceContext;
 };
 
 /**
  * What the coach sees this turn: the chat's running summary plus the messages after it.
  * If those have grown too big, older ones are folded into the summary first.
  */
-export async function buildConversationContext({ messages, memories, now, timeZone, onCompaction }: BuildContextOptions) {
+export async function buildConversationContext({ messages, memories, now, timeZone, onCompaction, trace }: BuildContextOptions) {
   const previous = latestCompaction(messages);
   let summary = previous?.summary ?? null;
   let window = previous ? messagesAfter(messages, previous.summarizedThrough) : messages;
@@ -25,7 +28,7 @@ export async function buildConversationContext({ messages, memories, now, timeZo
   if (plan) {
     onCompaction({ state: "running" });
     try {
-      summary = await summarizeConversation({ previousSummary: summary, messages: plan.fold, memories, now, timeZone });
+      summary = await summarizeConversation({ previousSummary: summary, messages: plan.fold, memories, now, timeZone, trace });
       window = plan.keep;
       onCompaction({
         state: "done",
