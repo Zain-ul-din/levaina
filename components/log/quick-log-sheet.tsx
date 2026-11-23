@@ -113,6 +113,7 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
       <SheetContent
         side="bottom"
         showCloseButton={false}
+        onDismiss={() => handleOpenChange(false)}
         // At least ~2/3 of the screen, so it reads as a place (not a popup hugging two rows),
         // and doesn't jump in height when moving between home, a form and the full log.
         className="mx-auto max-h-[92dvh] min-h-[66dvh] w-full max-w-lg gap-0 rounded-t-[1.75rem] bg-background"
@@ -189,6 +190,7 @@ function ActionRow({ onChoose }: { onChoose: (kind: QuickLogKind) => void }) {
           key={kind}
           type="button"
           onClick={() => onChoose(kind)}
+          data-feel="press"
           className="group/action flex flex-col items-center gap-2 rounded-2xl py-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <KindBadge

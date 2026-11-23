@@ -163,9 +163,14 @@
    * improvised cubic-bezier: ease-out for things entering or leaving, ease-in-out for things moving
    * on screen, the iOS drawer curve for sheets.
    */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Motion: one set of numbers, from app/feel.css (tone on <html data-feel-tone>). These names
+     stay for the app's own decorative motion (entrances, the splash, the check). */
+  --ease-out: var(--feel-out);
+  --ease-in-out: var(--feel-in-out);
+  /* Exit times the kit derives: what travels (sheets, drawers) leaves in about half its enter;
+     menus and fades leave in 70% of base. */
+  --feel-leave: calc(var(--feel-slow) * var(--feel-landing) * var(--feel-exit));
+  --feel-leave-pop: calc(var(--feel-base) * var(--feel-exit));
 
 
   /*
@@ -307,14 +312,6 @@ html[data-splash="off"] .splash {
   animation: splash-failsafe 300ms ease 4s forwards;
 }
 
-/* Press feedback for anything tappable: a quick, subtle scale (Emil: 0.95–0.98, 100–160ms). */
-.pressable {
-  transition: transform 140ms var(--ease-out);
-}
-.pressable:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
 /* The "Logged" check draws itself once (feedback), shortly after its bar appears. */
 @keyframes draw-check {
   from {
@@ -329,4 +326,15 @@ html[data-splash="off"] .splash {
   .draw-check {
     animation: none;
   }
+}
+
+/* Page changes (app/(chat)/template.tsx): the chat header is the same on both pages, so it stays put. */
+::view-transition-group(chat-header) {
+  animation: none;
+}
+::view-transition-old(chat-header) {
+  display: none;
+}
+::view-transition-new(chat-header) {
+  animation: none;
 }

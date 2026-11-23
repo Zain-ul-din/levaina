@@ -44,6 +44,7 @@ export function ChatHistorySheet() {
         <SheetContent
           side="left"
           showCloseButton={false}
+          onDismiss={() => handleOpenChange(false)}
           className="gap-0 bg-background data-[side=left]:w-[86vw] data-[side=left]:sm:max-w-sm"
         >
           <SheetTitleBar

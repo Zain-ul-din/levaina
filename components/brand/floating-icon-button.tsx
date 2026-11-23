@@ -9,7 +9,7 @@ export function FloatingIconButton({ className, ...props }: ComponentProps<typeo
       variant="ghost"
       size="icon"
       className={cn(
-        "size-10 rounded-full bg-card text-foreground shadow-soft hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40 [&_svg:not([class*='size-'])]:size-[18px]",
+        "size-10 rounded-full bg-card text-foreground shadow-soft hover:bg-card hover:text-foreground disabled:opacity-40 [&_svg:not([class*='size-'])]:size-[18px]",
         className,
       )}
       {...props}

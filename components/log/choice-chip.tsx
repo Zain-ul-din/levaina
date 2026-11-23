@@ -7,10 +7,11 @@ type ChoiceChipProps = Omit<ComponentProps<"button">, "type"> & { selected: bool
 export function ChoiceChip({ selected, className, ...props }: ChoiceChipProps) {
   return (
     <button
+      data-feel="press"
       type="button"
       aria-pressed={selected}
       className={cn(
-        "pressable inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-[0.95rem] outline-none [transition:transform_140ms_var(--ease-out),background-color_150ms_ease,border-color_150ms_ease]",
+        "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-[0.95rem] outline-none",
         "focus-visible:ring-3 focus-visible:ring-ring/50",
         selected
           ? "border-primary bg-(--saved) text-(--saved-foreground) font-medium"

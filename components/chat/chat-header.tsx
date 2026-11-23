@@ -15,7 +15,8 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 export function ChatHeader() {
   return (
     // Top padding = the safe-area inset, so the bar sits below the notch / status bar in the app.
-    <header className="shrink-0 pt-[env(safe-area-inset-top)]">
+    // view-transition-name: the header is the same on every chat, so it holds still while the page crossfades.
+    <header className="shrink-0 pt-[env(safe-area-inset-top)] [view-transition-name:chat-header]">
       <div className="mx-auto flex h-16 w-full max-w-3xl items-center gap-3 px-[max(1.25rem,env(safe-area-inset-left))]">
         <ChatHistorySheet />
         <span className="flex items-center gap-2">

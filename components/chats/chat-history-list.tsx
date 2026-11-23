@@ -52,7 +52,8 @@ export function ChatHistoryList({ history, onDone }: ChatHistoryListProps) {
         <button
           type="button"
           onClick={newChat}
-          className="pressable flex h-12 w-full items-center gap-3 rounded-full bg-card px-4 text-[0.95rem] font-medium shadow-soft outline-none hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+          data-feel="press"
+          className="flex h-12 w-full items-center gap-3 rounded-full bg-card px-4 text-[0.95rem] font-medium shadow-soft outline-none hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <NotePencilIcon weight="duotone" className="size-5 text-primary" />
           New chat
@@ -162,6 +163,8 @@ function ChatRow({ chat, isActive, when, onOpen, onDelete }: ChatRowProps) {
           onOpen();
         }}
         aria-current={isActive ? "page" : undefined}
+        data-feel="press"
+        data-feel-size="large"
         className={cn(
           // pr-14: room for the delete button, so a long title stops before it.
           "flex min-h-14 flex-col justify-center rounded-xl py-2 pr-14 pl-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",

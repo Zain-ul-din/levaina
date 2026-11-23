@@ -2,9 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+// After globals, outside Tailwind's layers, so its transitions win over utility ones.
+import "./feel.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { SplashScreen } from "@/components/brand/splash-screen";
+import { IosPress } from "@/components/feel/ios-press";
 import { APP_DESCRIPTION, APP_NAME, APP_TITLE } from "@/lib/brand/brand";
 
 const geistMono = Geist_Mono({
@@ -55,11 +58,13 @@ const SPLASH_SCRIPT = `(function(){var d=document.documentElement;try{if(session
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: next-themes adds class="dark" to <html> before React hydrates.
-    <html lang="en" suppressHydrationWarning className={cn("h-full antialiased font-sans", satoshi.variable, fraunces.variable, geistMono.variable)}>
+    // data-feel-tone: how the whole app moves (crisp | soft | lively). Soft: a calm wellness app.
+    <html lang="en" data-feel-tone="soft" suppressHydrationWarning className={cn("h-full antialiased font-sans", satoshi.variable, fraunces.variable, geistMono.variable)}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
       </head>
       <body className="flex min-h-full flex-col">
+        <IosPress />
         <ThemeProvider>
           <SplashScreen />
           {children}

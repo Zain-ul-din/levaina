@@ -32,6 +32,7 @@ export function MemoriesSheet() {
         {/* data-[side=right]: prefix needed to beat the sheet's own data-[side=right]:w-3/4 */}
         <SheetContent
           showCloseButton={false}
+          onDismiss={() => handleOpenChange(false)}
           className="gap-0 bg-background data-[side=right]:w-full data-[side=right]:sm:max-w-md"
         >
           <SheetTitleBar
