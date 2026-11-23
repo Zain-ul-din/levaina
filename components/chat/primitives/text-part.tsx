@@ -1,6 +1,7 @@
 "use client";
 
 import { splitAsk } from "@/lib/chat/ask-tag";
+import { cn } from "@/lib/utils";
 import { Streamdown } from "streamdown";
 
 type TextPartProps = {
@@ -31,7 +32,15 @@ export function TextPart({ text, isStreaming }: TextPartProps) {
       {ask && (
         // "Your turn": a thin matcha bar (matcha marks things you can do), a little extra space
         // above, and medium weight. Weight alone was too subtle to read as different from advice.
-        <div className="mt-2 border-l-2 border-primary/80 pl-4">
+        <div className="relative mt-2 pl-4">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "absolute inset-y-0 left-0 w-0.5 origin-top rounded-full bg-primary/80",
+              // Only in a live reply; reopened chats show it finished.
+              isStreaming && "transition-transform duration-500 ease-(--ease-out) starting:scale-y-0 motion-reduce:starting:scale-y-100",
+            )}
+          />
           <Streamdown className={`${PROSE} font-medium text-foreground`} isAnimating={isStreaming}>
             {ask}
           </Streamdown>

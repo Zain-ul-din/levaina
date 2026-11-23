@@ -10,8 +10,8 @@ export function ChoiceChip({ selected, className, ...props }: ChoiceChipProps) {
       type="button"
       aria-pressed={selected}
       className={cn(
-        "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-[0.95rem] transition-colors outline-none",
-        "focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px",
+        "pressable inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-[0.95rem] outline-none [transition:transform_140ms_var(--ease-out),background-color_150ms_ease,border-color_150ms_ease]",
+        "focus-visible:ring-3 focus-visible:ring-ring/50",
         selected
           ? "border-primary bg-(--saved) text-(--saved-foreground) font-medium"
           : "border-border bg-card text-foreground hover:bg-muted",

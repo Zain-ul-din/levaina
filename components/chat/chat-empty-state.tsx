@@ -35,7 +35,7 @@ export function ChatEmptyState() {
             type="button"
             disabled={!canSend}
             onClick={() => sendMessage({ text: message })}
-            className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3.5 text-left text-[0.95rem] font-medium shadow-soft transition-transform outline-none hover:-translate-y-px focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 disabled:opacity-60"
+            className="pressable flex items-center gap-3 rounded-2xl bg-card px-4 py-3.5 text-left text-[0.95rem] font-medium shadow-soft outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
           >
             <span aria-hidden="true" className="text-xl leading-none">
               {emoji}

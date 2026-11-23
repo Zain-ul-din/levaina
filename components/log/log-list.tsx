@@ -5,6 +5,7 @@ import { KIND_LABELS } from "@/lib/log/labels";
 import { safetyNoteFor } from "@/lib/log/safety";
 import type { LogEntry } from "@/lib/log/types";
 import { XIcon } from "@phosphor-icons/react";
+import { cn } from "@/lib/utils";
 import { KindBadge } from "./kind-badge";
 
 type RemoveHandler = (entry: LogEntry) => void;
@@ -52,22 +53,53 @@ export function LogList({ entries, onRemove }: { entries: LogEntry[]; onRemove: 
  * Entries in time order, newest at the top. The line joining the icons is the sequence itself,
  * so it's only drawn between entries, never after the last one.
  */
-export function LogTimeline({ entries, onRemove }: { entries: LogEntry[]; onRemove: RemoveHandler }) {
+export function LogTimeline({
+  entries,
+  justAddedId,
+  onRemove,
+}: {
+  entries: LogEntry[];
+  /** An entry saved a moment ago: it eases into place instead of appearing in a blink. */
+  justAddedId?: number;
+  onRemove: RemoveHandler;
+}) {
   return (
     <ol className="flex flex-col">
       {entries.map((entry, index) => (
-        <TimelineRow key={entry.id} entry={entry} isLast={index === entries.length - 1} onRemove={onRemove} />
+        <TimelineRow
+          key={entry.id}
+          entry={entry}
+          isLast={index === entries.length - 1}
+          isNew={entry.id === justAddedId}
+          onRemove={onRemove}
+        />
       ))}
     </ol>
   );
 }
 
-function TimelineRow({ entry, isLast, onRemove }: { entry: LogEntry; isLast: boolean; onRemove: RemoveHandler }) {
+function TimelineRow({
+  entry,
+  isLast,
+  isNew,
+  onRemove,
+}: {
+  entry: LogEntry;
+  isLast: boolean;
+  isNew: boolean;
+  onRemove: RemoveHandler;
+}) {
   const text = describeEntry(entry);
   const needsDoctor = safetyNoteFor(entry) !== undefined;
 
   return (
-    <li className="group/entry flex items-stretch gap-3">
+    <li
+      className={cn(
+        "group/entry flex items-stretch gap-3",
+        isNew &&
+          "transition-[opacity,transform] duration-300 ease-(--ease-out) starting:-translate-y-1.5 starting:opacity-0 motion-reduce:starting:translate-y-0",
+      )}
+    >
       {/* Wide enough for 12-hour clocks ("06:58 PM") on one line; nudged to the icon's centre line. */}
       <span className="w-16 shrink-0 pt-2 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
         {clockFormat.format(new Date(entry.loggedAt))}

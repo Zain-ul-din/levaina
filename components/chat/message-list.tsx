@@ -14,13 +14,15 @@ import { ChatMessage } from "./chat-message";
 
 type MessageListProps = {
   messages: ChatUIMessage[];
+  /** Ids the chat opened with; they don't animate (opening chats is frequent). */
+  openedWith: ReadonlySet<string>;
   /** The assistant message currently being streamed, if any. */
   streamingMessageId?: string;
   /** Rendered after the last message (pending indicator, errors). */
   children?: ReactNode;
 };
 
-export function MessageList({ messages, streamingMessageId, children }: MessageListProps) {
+export function MessageList({ messages, openedWith, streamingMessageId, children }: MessageListProps) {
   const showUsedMemoriesFor = messagesShowingUsedMemories(messages);
 
   return (
@@ -43,6 +45,7 @@ export function MessageList({ messages, streamingMessageId, children }: MessageL
               >
                 <ChatMessage
                   message={message}
+                  isNew={!openedWith.has(message.id)}
                   isStreaming={message.id === streamingMessageId}
                   showUsedMemories={showUsedMemoriesFor.has(message.id)}
                 />

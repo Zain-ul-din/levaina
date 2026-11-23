@@ -7,7 +7,7 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTi
 import { TraceLine, TraceTitle } from "@/components/ui/trace";
 import { KIND_LABELS, QUICK_LOG_KINDS } from "@/lib/log/labels";
 import { addLogEntryRequest, removeLogEntryRequest, type AddLogEntryInput, type AddLogEntryResponse } from "@/lib/log/log-api";
-import { ArrowLeftIcon, CaretRightIcon, CheckCircleIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, CaretRightIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useState, type ComponentType } from "react";
 import type { LogFormProps } from "./forms/form-props";
 import { MealForm } from "./forms/meal-form";
@@ -136,8 +136,11 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
           {view === "home" && (
             <div className="flex flex-col gap-6">
               <ActionRow onChoose={show} />
-              {lastSaved && <SavedConfirmation saved={lastSaved} onUndo={() => undoLastSaved(lastSaved)} />}
-              <Today log={log} onShowAll={() => show("history")} />
+              {lastSaved && (
+                // key: a fresh confirmation (and a fresh check drawing) for every save.
+                <SavedConfirmation key={lastSaved.entry.id} saved={lastSaved} onUndo={() => undoLastSaved(lastSaved)} />
+              )}
+              <Today log={log} justAddedId={lastSaved?.entry.id} onShowAll={() => show("history")} />
             </div>
           )}
         </div>
@@ -170,7 +173,15 @@ function ActionRow({ onChoose }: { onChoose: (kind: QuickLogKind) => void }) {
 }
 
 /** Today's entries as a timeline, so what's already logged is visible without another screen. */
-function Today({ log, onShowAll }: { log: ReturnType<typeof useLog>; onShowAll: () => void }) {
+function Today({
+  log,
+  justAddedId,
+  onShowAll,
+}: {
+  log: ReturnType<typeof useLog>;
+  justAddedId?: number;
+  onShowAll: () => void;
+}) {
   // The day the sheet was opened; fixed so the list doesn't shift at midnight mid-view.
   const [today] = useState(() => entryDay({ loggedAt: new Date().toISOString() }));
   const todays = log.entries.filter((entry) => entryDay(entry) === today);
@@ -202,7 +213,7 @@ function Today({ log, onShowAll }: { log: ReturnType<typeof useLog>; onShowAll: 
 
       {log.status === "ready" && todays.length > 0 && (
         <div className="rounded-2xl bg-card px-4 pt-4 pb-1 shadow-soft">
-          <LogTimeline entries={todays} onRemove={log.remove} />
+          <LogTimeline entries={todays} justAddedId={justAddedId} onRemove={log.remove} />
         </div>
       )}
       {log.status === "ready" && todays.length === 0 && (
@@ -246,8 +257,11 @@ function History({ log }: { log: ReturnType<typeof useLog> }) {
 function SavedConfirmation({ saved, onUndo }: { saved: AddLogEntryResponse; onUndo: () => Promise<void> }) {
   return (
     <div className="flex flex-col gap-3">
-      <div role="status" className="flex items-center gap-2 rounded-2xl bg-(--saved) px-4 py-3 text-(--saved-foreground)">
-        <CheckCircleIcon weight="fill" className="size-5 shrink-0" />
+      <div
+        role="status"
+        className="flex items-center gap-2 rounded-2xl bg-(--saved) px-4 py-3 text-(--saved-foreground) transition-[opacity,transform] duration-300 ease-(--ease-out) starting:-translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0"
+      >
+        <DrawnCheck />
         <span className="min-w-0 flex-1 truncate text-[0.95rem]">
           <span className="font-medium">Logged {clock(saved.entry.loggedAt)}</span> · {saved.text}
         </span>
@@ -255,5 +269,24 @@ function SavedConfirmation({ saved, onUndo }: { saved: AddLogEntryResponse; onUn
       </div>
       {saved.safetyNote && <SafetyNote>{saved.safetyNote}</SafetyNote>}
     </div>
+  );
+}
+
+/** A filled circle whose check mark draws itself (feedback that the save landed). */
+function DrawnCheck() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="size-5 shrink-0">
+      <circle cx="10" cy="10" r="10" fill="currentColor" />
+      <path
+        d="M6 10.4l2.7 2.7L14.2 7.4"
+        pathLength={1}
+        fill="none"
+        stroke="var(--saved)"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="draw-check"
+      />
+    </svg>
   );
 }

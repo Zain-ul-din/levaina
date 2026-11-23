@@ -297,3 +297,19 @@ html[data-splash="off"] .splash {
 .pressable:active:not(:disabled) {
   transform: scale(0.97);
 }
+
+/* The "Logged" check draws itself once (feedback), shortly after its bar appears. */
+@keyframes draw-check {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+.draw-check {
+  stroke-dasharray: 1;
+  animation: draw-check 320ms var(--ease-out) 90ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-check {
+    animation: none;
+  }
+}
