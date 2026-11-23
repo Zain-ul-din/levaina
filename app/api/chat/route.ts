@@ -52,6 +52,8 @@ export async function POST(req: Request) {
   const stream = createUIMessageStream<ChatUIMessage>({
     originalMessages: messages,
     execute: async ({ writer }) => {
+      // Tracing (Laminar): every model call this turn is tied to the user and this chat.
+      const trace = { userId, sessionId: chatId };
       // "start" names the reply, so it must come before anything else: a compaction part sent
       // earlier would land in a temporary message, and the client would render the reply twice.
       writer.write({
@@ -69,6 +71,7 @@ export async function POST(req: Request) {
         now,
         timeZone,
         onCompaction: (data) => writer.write({ type: "data-compaction", id: COMPACTION_PART_ID, data }),
+        trace,
       });
 
       const { tools, settings } = await createChatAgent({
@@ -80,6 +83,7 @@ export async function POST(req: Request) {
         memories,
         log,
         conversationSummary: context.summary,
+        trace,
       });
       const result = streamText({
         ...settings,

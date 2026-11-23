@@ -13,6 +13,7 @@
     "@ai-sdk/mistral": "^4.0.89",
     "@ai-sdk/react": "^4.0.183",
     "@base-ui/react": "^1.9.0",
+    "@lmnr-ai/lmnr": "^0.9.6",
     "@phosphor-icons/react": "^2.1.10",
     "@shadcn/react": "^0.3.1",
     "@supabase/ssr": "0.12.7",
