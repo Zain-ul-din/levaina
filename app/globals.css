@@ -144,6 +144,25 @@
   --saved: #e6edd5;
   --saved-foreground: #4f6a22;
 
+  /*
+   * Motion vocabulary (Emil Kowalski's curves). Every animation uses one of these, never an
+   * improvised cubic-bezier: ease-out for things entering or leaving, ease-in-out for things moving
+   * on screen, the iOS drawer curve for sheets.
+   */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /*
+   * Wave colours for the sign-in screen and splash only (never inside the chat): butter, miso,
+   * lime, matcha and cream, blended by the canvas. The one sanctioned departure from "no gradients".
+   */
+  --wave-1: #f2c94c;
+  --wave-2: #e8904a;
+  --wave-3: #b8cc4a;
+  --wave-4: #6f8f33;
+  --wave-5: #fffdf7;
+
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;
   --log-symptom: #8d6486;
@@ -194,6 +213,12 @@
   --saved: #2b3320;
   --saved-foreground: #c4da98;
 
+  --wave-1: #6e5a1e;
+  --wave-2: #7a4423;
+  --wave-3: #4d5a1c;
+  --wave-4: #33451a;
+  --wave-5: #23211b;
+
   --log-meal: #f0a066;
   --log-symptom: #c79bbf;
   --log-stool: #c99674;
@@ -220,4 +245,55 @@
   html {
     @apply font-sans;
   }
+}
+/*
+ * One-shot entrance for first-run screens (sign-in): a short rise and fade, staggered with
+ * --enter-delay set per element (non-uniform gaps, so the group reads as a wave, not a queue).
+ * `both` keeps delayed items hidden until their turn. Reduced motion: fade only, no movement.
+ */
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+}
+.enter-rise {
+  animation: enter-rise 520ms var(--ease-out) var(--enter-delay, 0ms) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .enter-rise {
+    animation-name: enter-fade;
+  }
+}
+
+/*
+ * Splash. The script in <head> marks html[data-splash="off"] when it was already shown this
+ * session, so it never even paints. The fail-safe hides it after 4s if its script never runs,
+ * so a broken load can't leave the app covered.
+ */
+html[data-splash="off"] .splash {
+  display: none;
+}
+@keyframes splash-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+.splash {
+  animation: splash-failsafe 300ms ease 4s forwards;
+}
+
+/* Press feedback for anything tappable: a quick, subtle scale (Emil: 0.95–0.98, 100–160ms). */
+.pressable {
+  transition: transform 140ms var(--ease-out);
+}
+.pressable:active:not(:disabled) {
+  transform: scale(0.97);
 }

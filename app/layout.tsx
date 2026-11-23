@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { SplashScreen } from "@/components/brand/splash-screen";
 import { APP_DESCRIPTION, APP_NAME, APP_TITLE } from "@/lib/brand/brand";
 
 const geistMono = Geist_Mono({
@@ -45,12 +46,24 @@ export const viewport: Viewport = {
   ],
 };
 
+/**
+ * Runs before the first paint: the splash plays once per browser session. If it already played,
+ * or storage is blocked, mark the page so CSS hides the splash before it's ever drawn.
+ */
+const SPLASH_SCRIPT = `(function(){var d=document.documentElement;try{if(sessionStorage.getItem("levaina.splash-seen")){d.dataset.splash="off"}else{sessionStorage.setItem("levaina.splash-seen","1")}}catch(e){d.dataset.splash="off"}})();`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: next-themes adds class="dark" to <html> before React hydrates.
     <html lang="en" suppressHydrationWarning className={cn("h-full antialiased font-sans", satoshi.variable, fraunces.variable, geistMono.variable)}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <SplashScreen />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
