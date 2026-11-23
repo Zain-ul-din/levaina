@@ -1,11 +1,16 @@
 "use client";
 
+import { SheetTitleBar } from "@/components/brand/sheet-title-bar";
 import { FloatingIconButton } from "@/components/brand/floating-icon-button";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { SidebarSimpleIcon, XIcon } from "@phosphor-icons/react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { SidebarSimpleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { ChatHistoryList } from "./chat-history-list";
-import { isDesktop, setSidebarCollapsed, useSidebarCollapsed } from "./sidebar-state";
+import {
+  isDesktop,
+  setSidebarCollapsed,
+  useSidebarCollapsed,
+} from "./sidebar-state";
 import { useChatHistory } from "./chat-history-context";
 
 /**
@@ -39,15 +44,13 @@ export function ChatHistorySheet() {
         <SheetContent
           side="left"
           showCloseButton={false}
-          className="gap-0 border-0 bg-background data-[side=left]:w-[86vw] data-[side=left]:sm:max-w-sm"
+          className="gap-0 bg-background data-[side=left]:w-[86vw] data-[side=left]:sm:max-w-sm"
         >
-          <SheetHeader className="flex-row items-center gap-3 px-4 pt-[max(1.25rem,env(safe-area-inset-top))]">
-            <SheetTitle className="min-w-0 flex-1 font-display text-2xl font-semibold tracking-tight">Your chats</SheetTitle>
-            <SheetDescription className="sr-only">Open or delete an earlier conversation.</SheetDescription>
-            <SheetClose render={<FloatingIconButton aria-label="Close" />}>
-              <XIcon />
-            </SheetClose>
-          </SheetHeader>
+          <SheetTitleBar
+            title="Your chats"
+            description="Open or delete an earlier conversation."
+            hideDescription
+          />
           <ChatHistoryList history={history} onDone={() => setOpen(false)} />
         </SheetContent>
       </Sheet>

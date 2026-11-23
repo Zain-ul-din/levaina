@@ -46,7 +46,7 @@ export function ChatHistoryList({ history, onDone }: ChatHistoryListProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="px-3 pb-2">
+      <div className="px-2 pb-2">
         <button
           type="button"
           onClick={newChat}
@@ -59,7 +59,7 @@ export function ChatHistoryList({ history, onDone }: ChatHistoryListProps) {
 
       <nav
         aria-label="Past chats"
-        className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto px-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
+        className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto px-2 pb-[max(1rem,env(safe-area-inset-bottom))]"
       >
         {error && (
           <p role="alert" className="px-3 py-2 text-sm text-destructive">

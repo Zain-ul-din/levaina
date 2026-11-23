@@ -1,13 +1,19 @@
 "use client";
 
+import { SheetTitleBar } from "@/components/brand/sheet-title-bar";
 import { FloatingIconButton } from "@/components/brand/floating-icon-button";
 import { UndoButton } from "@/components/chat/primitives/tool-line";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { TraceLine, TraceTitle } from "@/components/ui/trace";
 import { KIND_LABELS, QUICK_LOG_KINDS } from "@/lib/log/labels";
-import { addLogEntryRequest, removeLogEntryRequest, type AddLogEntryInput, type AddLogEntryResponse } from "@/lib/log/log-api";
-import { ArrowLeftIcon, CaretRightIcon, XIcon } from "@phosphor-icons/react";
+import {
+  addLogEntryRequest,
+  removeLogEntryRequest,
+  type AddLogEntryInput,
+  type AddLogEntryResponse,
+} from "@/lib/log/log-api";
+import { ArrowLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { useEffect, useState, type ComponentType } from "react";
 import type { LogFormProps } from "./forms/form-props";
 import { MealForm } from "./forms/meal-form";
@@ -37,7 +43,11 @@ type QuickLogSheetProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-const clock = (iso: string) => new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+const clock = (iso: string) =>
+  new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
 
 /**
  * The log's home, opened from the chat's + button.
@@ -81,7 +91,9 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
       log.prepend(saved.entry);
       setView("home");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't save that. Try again.");
+      setError(
+        err instanceof Error ? err.message : "Couldn't save that. Try again.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -103,32 +115,43 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
         showCloseButton={false}
         // At least ~2/3 of the screen, so it reads as a place (not a popup hugging two rows),
         // and doesn't jump in height when moving between home, a form and the full log.
-        className="mx-auto max-h-[92dvh] min-h-[66dvh] w-full max-w-lg gap-0 rounded-t-[1.75rem] border-0 bg-background"
+        className="mx-auto max-h-[92dvh] min-h-[66dvh] w-full max-w-lg gap-0 rounded-t-[1.75rem] bg-background"
       >
-        <SheetHeader className="flex-row items-center gap-3 px-5 pt-5">
-          {view !== "home" && (
-            <FloatingIconButton aria-label="Back" onClick={() => show("home")}>
-              <ArrowLeftIcon />
-            </FloatingIconButton>
-          )}
-          {isForm && <KindBadge kind={view} />}
-          <div className="min-w-0 flex-1">
-            <SheetTitle className="font-display text-2xl font-semibold tracking-tight">
-              {view === "home" ? "Log something" : view === "history" ? "Your log" : KIND_LABELS[view]}
-            </SheetTitle>
-            <SheetDescription className={view === "home" ? undefined : "sr-only"}>
-              The coach sees everything you log and looks for patterns.
-            </SheetDescription>
-          </div>
-          <SheetClose render={<FloatingIconButton aria-label="Close" />}>
-            <XIcon />
-          </SheetClose>
-        </SheetHeader>
+        <SheetTitleBar
+          atScreenTop={false}
+          title={
+            view === "home"
+              ? "Log something"
+              : view === "history"
+                ? "Your log"
+                : KIND_LABELS[view]
+          }
+          description="The coach sees everything you log and looks for patterns."
+          hideDescription={view !== "home"}
+          leading={
+            view !== "home" && (
+              <>
+                <FloatingIconButton
+                  aria-label="Back"
+                  onClick={() => show("home")}
+                >
+                  <ArrowLeftIcon />
+                </FloatingIconButton>
+                {isForm && <KindBadge kind={view} />}
+              </>
+            )
+          }
+        />
 
         <div className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {Form && (
             // key: a fresh form (and a fresh "now") every time an action is opened.
-            <Form key={view} onSubmit={save} isSaving={isSaving} error={error} />
+            <Form
+              key={view}
+              onSubmit={save}
+              isSaving={isSaving}
+              error={error}
+            />
           )}
 
           {view === "history" && <History log={log} />}
@@ -138,9 +161,17 @@ export function QuickLogSheet({ open, onOpenChange }: QuickLogSheetProps) {
               <ActionRow onChoose={show} />
               {lastSaved && (
                 // key: a fresh confirmation (and a fresh check drawing) for every save.
-                <SavedConfirmation key={lastSaved.entry.id} saved={lastSaved} onUndo={() => undoLastSaved(lastSaved)} />
+                <SavedConfirmation
+                  key={lastSaved.entry.id}
+                  saved={lastSaved}
+                  onUndo={() => undoLastSaved(lastSaved)}
+                />
               )}
-              <Today log={log} justAddedId={lastSaved?.entry.id} onShowAll={() => show("history")} />
+              <Today
+                log={log}
+                justAddedId={lastSaved?.entry.id}
+                onShowAll={() => show("history")}
+              />
             </div>
           )}
         </div>
@@ -183,13 +214,15 @@ function Today({
   onShowAll: () => void;
 }) {
   // The day the sheet was opened; fixed so the list doesn't shift at midnight mid-view.
-  const [today] = useState(() => entryDay({ loggedAt: new Date().toISOString() }));
+  const [today] = useState(() =>
+    entryDay({ loggedAt: new Date().toISOString() }),
+  );
   const todays = log.entries.filter((entry) => entryDay(entry) === today);
   const hasEarlier = log.hasMore || log.entries.length > todays.length;
 
   return (
     <section aria-labelledby="log-today" className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-3 px-1">
+      <div className="flex items-baseline justify-between gap-3">
         <h3 id="log-today" className="text-[0.95rem] font-semibold">
           Today
         </h3>
@@ -206,19 +239,24 @@ function Today({
       </div>
 
       {log.error && (
-        <p role="alert" className="px-1 text-sm text-destructive">
+        <p role="alert" className="text-sm text-destructive">
           {log.error}
         </p>
       )}
 
       {log.status === "ready" && todays.length > 0 && (
         <div className="rounded-2xl bg-card px-4 pt-4 pb-1 shadow-soft">
-          <LogTimeline entries={todays} justAddedId={justAddedId} onRemove={log.remove} />
+          <LogTimeline
+            entries={todays}
+            justAddedId={justAddedId}
+            onRemove={log.remove}
+          />
         </div>
       )}
       {log.status === "ready" && todays.length === 0 && (
         <p className="rounded-2xl border border-dashed border-border px-4 py-5 text-center text-[0.95rem] text-muted-foreground">
-          Nothing logged today yet. Tap above, or just tell the coach what you ate.
+          Nothing logged today yet. Tap above, or just tell the coach what you
+          ate.
         </p>
       )}
       {(log.status === "loading" || log.status === "idle") && (
@@ -243,10 +281,17 @@ function History({ log }: { log: ReturnType<typeof useLog> }) {
           <TraceTitle>Loading</TraceTitle>
         </TraceLine>
       ) : (
-        log.status === "ready" && <LogList entries={log.entries} onRemove={log.remove} />
+        log.status === "ready" && (
+          <LogList entries={log.entries} onRemove={log.remove} />
+        )
       )}
       {log.status === "ready" && log.hasMore && (
-        <Button variant="ghost" className="h-10 rounded-xl text-muted-foreground" disabled={log.isLoadingMore} onClick={log.loadMore}>
+        <Button
+          variant="ghost"
+          className="h-10 rounded-xl text-muted-foreground"
+          disabled={log.isLoadingMore}
+          onClick={log.loadMore}
+        >
           {log.isLoadingMore ? "Loading…" : "Show earlier"}
         </Button>
       )}
@@ -254,7 +299,13 @@ function History({ log }: { log: ReturnType<typeof useLog> }) {
   );
 }
 
-function SavedConfirmation({ saved, onUndo }: { saved: AddLogEntryResponse; onUndo: () => Promise<void> }) {
+function SavedConfirmation({
+  saved,
+  onUndo,
+}: {
+  saved: AddLogEntryResponse;
+  onUndo: () => Promise<void>;
+}) {
   return (
     <div className="flex flex-col gap-3">
       <div
@@ -263,7 +314,10 @@ function SavedConfirmation({ saved, onUndo }: { saved: AddLogEntryResponse; onUn
       >
         <DrawnCheck />
         <span className="min-w-0 flex-1 truncate text-[0.95rem]">
-          <span className="font-medium">Logged {clock(saved.entry.loggedAt)}</span> · {saved.text}
+          <span className="font-medium">
+            Logged {clock(saved.entry.loggedAt)}
+          </span>{" "}
+          · {saved.text}
         </span>
         <UndoButton undo={onUndo} />
       </div>

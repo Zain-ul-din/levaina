@@ -1,16 +1,10 @@
 "use client";
 
+import { SheetTitleBar } from "@/components/brand/sheet-title-bar";
 import { FloatingIconButton } from "@/components/brand/floating-icon-button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { TraceLine, TraceTitle } from "@/components/ui/trace";
-import { BookmarksSimpleIcon, XIcon } from "@phosphor-icons/react";
+import { BookmarksSimpleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { MemoryList } from "./memory-list";
 import { useMemories } from "./use-memories";
@@ -27,7 +21,10 @@ export function MemoriesSheet() {
 
   return (
     <>
-      <FloatingIconButton aria-label="What the coach remembers" onClick={() => handleOpenChange(true)}>
+      <FloatingIconButton
+        aria-label="What the coach remembers"
+        onClick={() => handleOpenChange(true)}
+      >
         <BookmarksSimpleIcon />
       </FloatingIconButton>
 
@@ -37,18 +34,12 @@ export function MemoriesSheet() {
           showCloseButton={false}
           className="gap-0 bg-background data-[side=right]:w-full data-[side=right]:sm:max-w-md"
         >
-          <SheetHeader className="pt-[max(1.25rem,env(safe-area-inset-top))]">
-            {/* Same floating round button as the header, instead of the sheet's tiny default ✕. */}
-            <SheetClose render={<FloatingIconButton aria-label="Close" className="mb-3 self-end" />}>
-              <XIcon />
-            </SheetClose>
-            <SheetTitle className="font-display text-2xl font-semibold tracking-tight">What I remember</SheetTitle>
-            <SheetDescription>
-              Saved from your chats and used in every conversation. Remove anything that&apos;s wrong.
-            </SheetDescription>
-          </SheetHeader>
+          <SheetTitleBar
+            title="What I remember"
+            description="Saved from your chats and used in every conversation. Remove anything that's wrong."
+          />
 
-          <div className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="scrollbar-subtle min-h-0 flex-1 overflow-y-auto px-5 py-4">
             {error && (
               <p role="alert" className="mb-4 text-sm text-destructive">
                 {error}
@@ -59,10 +50,11 @@ export function MemoriesSheet() {
                 <TraceTitle>Loading</TraceTitle>
               </TraceLine>
             ) : (
-              status === "ready" && <MemoryList memories={memories} onForget={forget} />
+              status === "ready" && (
+                <MemoryList memories={memories} onForget={forget} />
+              )
             )}
           </div>
-
         </SheetContent>
       </Sheet>
     </>

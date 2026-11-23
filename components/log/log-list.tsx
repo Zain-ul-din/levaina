@@ -39,7 +39,7 @@ export function LogList({ entries, onRemove }: { entries: LogEntry[]; onRemove: 
     <div className="flex flex-col gap-6">
       {[...days].map(([day, dayEntries]) => (
         <section key={day} className="flex flex-col gap-2.5">
-          <h3 className="px-1 text-[0.95rem] font-semibold">{day}</h3>
+          <h3 className="text-[0.95rem] font-semibold">{day}</h3>
           <div className="rounded-2xl bg-card px-4 pt-4 pb-1 shadow-soft">
             <LogTimeline entries={dayEntries} onRemove={onRemove} />
           </div>
