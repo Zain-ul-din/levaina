@@ -154,6 +154,15 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
 
+  /*
+   * Glass card on the sign-in screen: frosted cream in light mode, smoked glass in dark.
+   * Secondary text and fields get their own values inside it, so they stay readable over the picture.
+   */
+  --glass-panel: rgb(250 247 238 / 0.6);
+  --glass-edge: rgb(255 255 255 / 0.55);
+  --glass-muted: #4f493f;
+  --glass-field: rgb(255 255 255 / 0.7);
+
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;
   --log-symptom: #8d6486;
@@ -204,6 +213,11 @@
   --saved: #2b3320;
   --saved-foreground: #c4da98;
 
+
+  --glass-panel: rgb(22 24 16 / 0.52);
+  --glass-edge: rgb(255 255 255 / 0.14);
+  --glass-muted: rgb(246 243 234 / 0.78);
+  --glass-field: rgb(255 255 255 / 0.1);
 
   --log-meal: #f0a066;
   --log-symptom: #c79bbf;
