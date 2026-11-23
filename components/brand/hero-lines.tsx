@@ -18,8 +18,17 @@ const CONTOURS = [
   "M536 130 C528 52 610 0 712 4 C812 8 878 66 872 134 C866 206 794 250 700 248 C604 246 544 204 536 130 Z",
 ];
 
-const TRAIL =
-  "M-40 410 C80 360 170 380 250 330 S330 250 420 270 S560 300 600 230 S600 150 650 138 S688 126 700 120";
+/*
+ * Three long curves with matched handles at every join (each join's in- and out-handles lie on one
+ * straight line through it), so the direction never jumps: no kinks, just a smooth climb.
+ * Joins: (360,300) heading (120,-42); (600,200) heading (90,-22); then a soft turn up to the goal.
+ */
+const TRAIL = [
+  "M-40 380",
+  "C100 360 240 342 360 300",
+  "C480 258 510 222 600 200",
+  "C690 178 690 150 700 120",
+].join(" ");
 
 export function HeroLines({ className }: { className?: string }) {
   return (
@@ -39,13 +48,13 @@ export function HeroLines({ className }: { className?: string }) {
         ))}
       </g>
 
-      {/* The trail: short dashes, drifting toward the goal. */}
+      {/* The trail: small round dots (they follow curves cleanly), drifting toward the goal. */}
       <path
         d={TRAIL}
         stroke="var(--hero-line)"
-        strokeOpacity={0.55}
-        strokeWidth={1.5}
-        strokeDasharray="6 9"
+        strokeOpacity={0.6}
+        strokeWidth={2.2}
+        strokeDasharray="0.1 7.4"
         className="trail-walk"
         style={{ vectorEffect: "non-scaling-stroke" }}
       />
