@@ -153,16 +153,6 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
-  /*
-   * Silk ribbon on the sign-in screen only (never inside the chat): vivid fruit colours across
-   * its width (lime, saffron, mango, guava, dragonfruit), blended and lit by the WebGL shader.
-   * The one sanctioned departure from "no gradients".
-   */
-  --ribbon-1: #c3e35a;
-  --ribbon-2: #ffc53d;
-  --ribbon-3: #ff7a2f;
-  --ribbon-4: #ff4d8d;
-  --ribbon-5: #a93fe0;
 
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;

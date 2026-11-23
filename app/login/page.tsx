@@ -4,16 +4,21 @@ import { SilkRibbon } from "@/components/brand/silk-ribbon";
 import { APP_NAME } from "@/lib/brand/brand";
 
 /**
- * Sign-in: a 3D silk ribbon folds through the bottom-right corner (bottom edge to right edge),
- * behind the content; the logo, welcome and form sit in the upper part and enter once, as one
- * staggered wave (see .enter-rise).
+ * Sign-in: a band of 3D silk ribbons across the top with a slanted bottom edge (the Stripe hero
+ * idea), then the logo, welcome and form. The content enters once, as one staggered wave (.enter-rise).
  */
 export default function LoginPage() {
   return (
-    <main className="relative flex flex-1 flex-col overflow-hidden bg-background">
-      <SilkRibbon className="pointer-events-none absolute inset-0 size-full" />
+    <main className="relative flex flex-1 flex-col bg-background">
+      {/* The slant comes from clip-path; the ribbons are cut by it, as in Stripe's hero. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[44dvh] min-h-64 overflow-hidden [clip-path:polygon(0_0,100%_0,100%_72%,0_100%)]"
+      >
+        <SilkRibbon className="size-full" />
+      </div>
 
-      <div className="relative mx-auto flex w-full max-w-sm flex-1 flex-col px-4 pt-[max(14dvh,calc(env(safe-area-inset-top)+3rem))] pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className="relative mx-auto flex w-full max-w-sm flex-1 flex-col px-4 pt-[max(calc(44dvh-2.5rem),13.5rem)] pb-[max(2rem,env(safe-area-inset-bottom))]">
         <span className="enter-rise mb-6 grid size-16 place-items-center rounded-2xl bg-card shadow-soft [--enter-delay:0ms]">
           <LogoMark className="size-10 text-primary" />
         </span>
