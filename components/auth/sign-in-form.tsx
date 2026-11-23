@@ -82,6 +82,7 @@ export function SignInForm() {
         <Button type="submit" disabled={busy || !email.trim()} className={SUBMIT}>
           {busy ? "Sending…" : "Send me a code"}
         </Button>
+        <p className="text-center text-sm text-muted-foreground">No password needed. We&apos;ll email you a 6-digit code.</p>
       </form>
     );
   }
