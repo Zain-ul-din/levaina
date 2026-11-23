@@ -1,21 +1,21 @@
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { LogoMark } from "@/components/brand/logo-mark";
-import { SilkRibbon } from "@/components/brand/silk-ribbon";
+import { ColorPipes } from "@/components/brand/color-pipes";
 import { APP_NAME } from "@/lib/brand/brand";
 
 /**
- * Sign-in: a band of 3D silk ribbons across the top with a slanted bottom edge (the Stripe hero
+ * Sign-in: a band of glossy 3D tubes across the top with a slanted bottom edge (the Stripe hero
  * idea), then the logo, welcome and form. The content enters once, as one staggered wave (.enter-rise).
  */
 export default function LoginPage() {
   return (
     <main className="relative flex flex-1 flex-col bg-background">
-      {/* The slant comes from clip-path; the ribbons are cut by it, as in Stripe's hero. */}
+      {/* The slant comes from clip-path; the tubes are cut by it, as in Stripe's hero. */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-[44dvh] min-h-64 overflow-hidden [clip-path:polygon(0_0,100%_0,100%_72%,0_100%)]"
       >
-        <SilkRibbon className="size-full" />
+        <ColorPipes className="size-full" />
       </div>
 
       <div className="relative mx-auto flex w-full max-w-sm flex-1 flex-col px-4 pt-[max(calc(44dvh-2.5rem),13.5rem)] pb-[max(2rem,env(safe-area-inset-bottom))]">
