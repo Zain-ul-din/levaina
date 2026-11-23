@@ -154,11 +154,6 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
 
-  /* Sign-in band: quiet tone-on-tone (oat a shade deeper than the page), an ink trail, a matcha goal. */
-  --hero-bg: #e9e3d4;
-  --hero-line: #2b2620;
-  --hero-accent: #5e7a2e;
-
   /* Log kinds: one hue each so a day reads at a glance. Used only on small icon discs. */
   --log-meal: #d9762f;
   --log-symptom: #8d6486;
@@ -209,10 +204,6 @@
   --saved: #2b3320;
   --saved-foreground: #c4da98;
 
-
-  --hero-bg: #211f1a;
-  --hero-line: #efebe1;
-  --hero-accent: #a9c46e;
 
   --log-meal: #f0a066;
   --log-symptom: #c79bbf;
@@ -305,24 +296,6 @@ html[data-splash="off"] .splash {
 }
 @media (prefers-reduced-motion: reduce) {
   .draw-check {
-    animation: none;
-  }
-}
-
-/*
- * Sign-in trail: its dots drift slowly toward the goal, like footsteps. One dot + gap (7.5) per
- * cycle, so the loop is seamless. Reduced motion: still.
- */
-@keyframes trail-walk {
-  to {
-    stroke-dashoffset: -7.5;
-  }
-}
-.trail-walk {
-  animation: trail-walk 1.1s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .trail-walk {
     animation: none;
   }
 }
