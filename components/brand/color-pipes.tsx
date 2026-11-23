@@ -23,8 +23,19 @@ const PIPE_COLORS = ["#5b6cff", "#ff4d8d", "#ff7a2f", "#ffc53d", "#9fd04a"];
 
 /** Distance from the rope's axis to each pipe's centre, in view units (the band is 2 tall). */
 const ROPE_RADIUS = 0.3;
-/** Pipes as thick as fits without touching: the gap between neighbouring centres, minus a hair. */
-const PIPE_RADIUS = ROPE_RADIUS * Math.sin(Math.PI / PIPE_COLORS.length) * 0.94;
+/** Pipes a little thinner than would touch, leaving room for each to surge and lag on its own. */
+const PIPE_RADIUS = ROPE_RADIUS * Math.sin(Math.PI / PIPE_COLORS.length) * 0.82;
+/**
+ * How far (radians round the rope) a pipe may slip ahead of or behind its place. Kept under half
+ * the free angle between neighbours, so even two neighbours slipping toward each other can't touch.
+ */
+const SURGE = (() => {
+  const free = (Math.PI * 2) / PIPE_COLORS.length - 2 * Math.asin(PIPE_RADIUS / ROPE_RADIUS);
+  return free * 0.45;
+})();
+/** Each pipe's own surge speed and timing, so no two move in step. */
+const SURGE_SPEEDS = [0.9, 1.45, 0.7, 1.2, 1.7];
+const SURGE_PHASES = [0.0, 2.3, 4.1, 1.1, 5.2];
 /** Turns of the rope along its whole length (most of it is visible). */
 const TWIST = 2.2 * Math.PI * 2;
 
@@ -39,6 +50,9 @@ uniform float u_ropeRadius;
 uniform float u_pipeRadius;
 uniform float u_twist;
 uniform float u_strand;           // this pipe's starting angle round the rope
+uniform float u_surge;            // how far it may slip ahead or behind
+uniform float u_surgeSpeed;       // its own pace
+uniform float u_surgePhase;       // and timing
 varying vec3 v_normal;
 
 // The rope's axis: along the slanted edge, with a gentle bend.
@@ -55,7 +69,10 @@ vec3 strand(float u) {
   vec3 tangent = normalize(axis(u + 0.002) - c);
   vec3 side = normalize(cross(tangent, vec3(0.0, 0.0, 1.0)));
   vec3 up = cross(side, tangent);
-  float a = u_strand + u * u_twist + u_time * 0.35;
+  // The shared turn, plus this pipe's own surge and lag (varying along its length too),
+  // so each strand looks like it moves on its own.
+  float a = u_strand + u * u_twist + u_time * 0.35
+          + u_surge * sin(u_time * u_surgeSpeed + u * 2.5 + u_surgePhase);
   return c + u_ropeRadius * (cos(a) * side + sin(a) * up);
 }
 
@@ -175,6 +192,9 @@ export function ColorPipes({ className }: { className?: string }) {
       pipeRadius: loc("u_pipeRadius"),
       twist: loc("u_twist"),
       strand: loc("u_strand"),
+      surge: loc("u_surge"),
+      surgeSpeed: loc("u_surgeSpeed"),
+      surgePhase: loc("u_surgePhase"),
       color: loc("u_color"),
     };
     const pipeColors = PIPE_COLORS.map(hexToRgb);
@@ -203,8 +223,11 @@ export function ColorPipes({ className }: { className?: string }) {
       gl.uniform1f(u.ropeRadius, ROPE_RADIUS);
       gl.uniform1f(u.pipeRadius, PIPE_RADIUS);
       gl.uniform1f(u.twist, TWIST);
+      gl.uniform1f(u.surge, SURGE);
       pipeColors.forEach((color, i) => {
         gl.uniform1f(u.strand, (i / pipeColors.length) * Math.PI * 2);
+        gl.uniform1f(u.surgeSpeed, SURGE_SPEEDS[i % SURGE_SPEEDS.length]);
+        gl.uniform1f(u.surgePhase, SURGE_PHASES[i % SURGE_PHASES.length]);
         gl.uniform3fv(u.color, color);
         gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
       });
