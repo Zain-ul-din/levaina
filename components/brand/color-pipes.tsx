@@ -4,119 +4,92 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 
 /*
- * Glossy 3D tubes in WebGL for the sign-in band: they run side by side along the band's slanted edge
- * (rising to the top right), bending together so they never touch, while colour bands spiral round
- * each tube like a twisted rope and slowly turn. The twist lives on the surface, not in the paths,
- * which is what keeps them from crossing.
+ * A rope of glossy 3D pipes in WebGL for the sign-in band: five solid-coloured pipes wound round
+ * one shared centre line, like the strands of a rope. The rope runs along the band's slanted edge
+ * (rising to the top right) and slowly turns, so each pipe passes in front of and behind its
+ * neighbours. Pipe thickness comes from the rope's size, so strands sit snug without cutting
+ * into each other.
  *
- * Every tube is the same grid (along × around). The vertex shader wraps it round a shared curve,
- * offset sideways per tube; the fragment shader colours the spiral and lights the tube (diffuse,
- * a glossy highlight and a soft rim). Plain WebGL 1, no library.
+ * Every pipe is the same grid (along × around). The vertex shader puts the grid on a helix round
+ * the rope's axis and wraps it into a tube; the fragment shader lights it (diffuse, a glossy
+ * highlight, a soft rim). Plain WebGL 1, no library.
  */
 
-const ALONG = 180;
-const AROUND = 40;
+const ALONG = 260;
+const AROUND = 32;
 
-type Pipe = {
-  /** Three colours that spiral round the tube (cycled). */
-  colors: [string, string, string];
-  /** Phase of the spiral, so neighbours don't line up stripe for stripe. */
-  phase: number;
-};
+/** One solid colour per pipe: blueberry, guava, mango, saffron, lime. */
+const PIPE_COLORS = ["#5b6cff", "#ff4d8d", "#ff7a2f", "#ffc53d", "#9fd04a"];
 
-/**
- * Top to bottom; neighbours share a colour so the stack reads as one gradient:
- * berry, sunrise, citrus, garden, cream.
- */
-const PIPES: Pipe[] = [
-  { colors: ["#5b6cff", "#a93fe0", "#ff4d8d"], phase: 0.0 },
-  { colors: ["#ff4d8d", "#ff7a2f", "#ffc53d"], phase: 0.21 },
-  { colors: ["#ffc53d", "#d8ec5a", "#7fd88a"], phase: 0.42 },
-  { colors: ["#4fd1a5", "#1fa2b8", "#5b6cff"], phase: 0.63 },
-  { colors: ["#fff1a8", "#ffd6a0", "#c9b6ff"], phase: 0.84 },
-];
-
-/** Tube radius and the gap between tubes, in view units (the band is 2 units tall). */
-const RADIUS = 0.15;
-const GAP = 0.05;
-/** How many times the colour spiral wraps round a tube along its visible length. */
-const TURNS = 3.0;
+/** Distance from the rope's axis to each pipe's centre, in view units (the band is 2 tall). */
+const ROPE_RADIUS = 0.3;
+/** Pipes as thick as fits without touching: the gap between neighbouring centres, minus a hair. */
+const PIPE_RADIUS = ROPE_RADIUS * Math.sin(Math.PI / PIPE_COLORS.length) * 0.94;
+/** Turns of the rope along its whole length (most of it is visible). */
+const TWIST = 2.2 * Math.PI * 2;
 
 const VERTEX = /* glsl */ `
-attribute vec2 a_grid;            // x: 0..1 along, y: 0..1 around
+attribute vec2 a_grid;            // x: 0..1 along, y: 0..1 around the pipe
 uniform float u_time;
 uniform float u_aspect;
 uniform vec2 u_anchor;
 uniform vec2 u_dir;
 uniform float u_span;
-uniform float u_offset;           // sideways offset of this tube from the bundle's centre line
-uniform float u_radius;
+uniform float u_ropeRadius;
+uniform float u_pipeRadius;
+uniform float u_twist;
+uniform float u_strand;           // this pipe's starting angle round the rope
 varying vec3 v_normal;
-varying float v_along;
-varying float v_around;
 
-// The shared path: every tube follows the same curve, shifted sideways, so they stay parallel.
-vec3 path(float u) {
+// The rope's axis: along the slanted edge, with a gentle bend.
+vec3 axis(float u) {
   vec2 perp = vec2(-u_dir.y, u_dir.x);
   vec2 p = u_anchor + u_dir * (u - 0.5) * u_span;
-  float bend = sin(u * 3.14159 + u_time * 0.12) * 0.1 + sin(u * 4.0 + u_time * 0.25) * 0.03;
-  p += perp * (bend + u_offset);
+  p += perp * (sin(u * 3.14159 + u_time * 0.1) * 0.08);
   return vec3(p, 0.0);
+}
+
+// This pipe's centre line: a helix round the axis, turning slowly over time.
+vec3 strand(float u) {
+  vec3 c = axis(u);
+  vec3 tangent = normalize(axis(u + 0.002) - c);
+  vec3 side = normalize(cross(tangent, vec3(0.0, 0.0, 1.0)));
+  vec3 up = cross(side, tangent);
+  float a = u_strand + u * u_twist + u_time * 0.35;
+  return c + u_ropeRadius * (cos(a) * side + sin(a) * up);
 }
 
 void main() {
   float u = a_grid.x;
-  float angle = a_grid.y * 6.2831853;
-  vec3 c = path(u);
-  vec3 tangent = normalize(path(u + 0.002) - c);
+  float around = a_grid.y * 6.2831853;
+  vec3 s = strand(u);
+  vec3 tangent = normalize(strand(u + 0.001) - s);
   vec3 side = normalize(cross(tangent, vec3(0.0, 0.0, 1.0)));
   vec3 up = cross(side, tangent);
-  vec3 normal = cos(angle) * side + sin(angle) * up;
-  vec3 p = c + normal * u_radius;
+  vec3 normal = cos(around) * side + sin(around) * up;
+  vec3 p = s + normal * u_pipeRadius;
   v_normal = normal;
-  v_along = u;
-  v_around = a_grid.y;
-  float camera = 3.2;
+  float camera = 3.4;
   vec2 xy = p.xy * camera / (camera - p.z);
-  gl_Position = vec4(xy.x / u_aspect, xy.y, -p.z * 0.2, 1.0);
+  gl_Position = vec4(xy.x / u_aspect, xy.y, -p.z * 0.4, 1.0);
 }
 `;
 
 const FRAGMENT = /* glsl */ `
 precision highp float;
-uniform vec3 u_c0;
-uniform vec3 u_c1;
-uniform vec3 u_c2;
-uniform float u_time;
-uniform float u_phase;
-uniform float u_turns;
+uniform vec3 u_color;
 varying vec3 v_normal;
-varying float v_along;
-varying float v_around;
-
-// Three colours in a loop, blended smoothly, so the spiral has no seam.
-vec3 loopPalette(float t) {
-  t = fract(t) * 3.0;
-  if (t < 1.0) return mix(u_c0, u_c1, smoothstep(0.0, 1.0, t));
-  if (t < 2.0) return mix(u_c1, u_c2, smoothstep(0.0, 1.0, t - 1.0));
-  return mix(u_c2, u_c0, smoothstep(0.0, 1.0, t - 2.0));
-}
 
 void main() {
   vec3 n = normalize(v_normal);
-  // Spiral: position round the tube plus distance along it, drifting slowly so the rope turns.
-  float spiral = v_around + v_along * u_turns - u_time * 0.06 + u_phase;
-  vec3 base = loopPalette(spiral);
-
   vec3 light = normalize(vec3(-0.3, 0.65, 0.7));
   vec3 view = vec3(0.0, 0.0, 1.0);
-  float diffuse = 0.62 + 0.38 * max(dot(n, light), 0.0);
-  float gloss = pow(max(dot(n, normalize(light + view)), 0.0), 48.0) * 0.55;
-  float rim = pow(1.0 - max(n.z, 0.0), 3.0) * 0.12;
-
-  vec3 color = base * diffuse;
+  float diffuse = 0.55 + 0.45 * max(dot(n, light), 0.0);
+  float gloss = pow(max(dot(n, normalize(light + view)), 0.0), 60.0) * 0.6;
+  float rim = pow(1.0 - max(n.z, 0.0), 3.0) * 0.1;
+  vec3 color = u_color * diffuse;
   float grey = dot(color, vec3(0.299, 0.587, 0.114));
-  color = mix(vec3(grey), color, 1.15);
+  color = mix(vec3(grey), color, 1.12);
   color += vec3(gloss) + rim;
   gl_FragColor = vec4(color, 1.0);
 }
@@ -177,7 +150,7 @@ export function ColorPipes({ className }: { className?: string }) {
       gl.linkProgram(program);
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) ?? "link error");
     } catch (error) {
-      console.warn("Colour pipes disabled:", error);
+      console.warn("Pipe rope disabled:", error);
       return;
     }
     gl.useProgram(program);
@@ -198,15 +171,13 @@ export function ColorPipes({ className }: { className?: string }) {
       anchor: loc("u_anchor"),
       dir: loc("u_dir"),
       span: loc("u_span"),
-      offset: loc("u_offset"),
-      radius: loc("u_radius"),
-      phase: loc("u_phase"),
-      turns: loc("u_turns"),
-      c0: loc("u_c0"),
-      c1: loc("u_c1"),
-      c2: loc("u_c2"),
+      ropeRadius: loc("u_ropeRadius"),
+      pipeRadius: loc("u_pipeRadius"),
+      twist: loc("u_twist"),
+      strand: loc("u_strand"),
+      color: loc("u_color"),
     };
-    const pipeColors = PIPES.map((pipe) => pipe.colors.map(hexToRgb));
+    const pipeColors = PIPE_COLORS.map(hexToRgb);
 
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
@@ -227,18 +198,14 @@ export function ColorPipes({ className }: { className?: string }) {
       gl.uniform1f(u.time, elapsed);
       gl.uniform1f(u.aspect, aspect);
       gl.uniform2f(u.dir, Math.cos(angle), Math.sin(angle));
-      gl.uniform2f(u.anchor, 0, 0.14); // the bundle's centre, a little above the middle, clear of the cut
+      gl.uniform2f(u.anchor, 0, 0.12); // the rope's centre, a little above the middle, clear of the cut
       gl.uniform1f(u.span, aspect * 2 + 2.4); // ends well off screen
-      gl.uniform1f(u.radius, RADIUS);
-      gl.uniform1f(u.turns, TURNS);
-      const pitch = RADIUS * 2 + GAP;
-      PIPES.forEach((pipe, i) => {
-        // First pipe on top; perp points up-left of the flow, so a positive offset is higher.
-        gl.uniform1f(u.offset, ((PIPES.length - 1) / 2 - i) * pitch);
-        gl.uniform1f(u.phase, pipe.phase);
-        gl.uniform3fv(u.c0, pipeColors[i][0]);
-        gl.uniform3fv(u.c1, pipeColors[i][1]);
-        gl.uniform3fv(u.c2, pipeColors[i][2]);
+      gl.uniform1f(u.ropeRadius, ROPE_RADIUS);
+      gl.uniform1f(u.pipeRadius, PIPE_RADIUS);
+      gl.uniform1f(u.twist, TWIST);
+      pipeColors.forEach((color, i) => {
+        gl.uniform1f(u.strand, (i / pipeColors.length) * Math.PI * 2);
+        gl.uniform3fv(u.color, color);
         gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
       });
     };
