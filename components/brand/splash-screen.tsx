@@ -24,6 +24,17 @@ const EXIT_AT = 1.7;
  * It's in the server HTML so it covers the very first paint; a <head> script hides it when it was
  * already shown this session (see SPLASH_SCRIPT in app/layout.tsx), and CSS has a fail-safe.
  */
+/** Eats the next click anywhere on the page (once), then stops listening. */
+function swallowNextClick() {
+  const eat = (event: Event) => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+  window.addEventListener("click", eat, { capture: true, once: true });
+  // A tap with no click (moved finger, cancelled) must not eat a later, real click.
+  window.setTimeout(() => window.removeEventListener("click", eat, { capture: true }), 600);
+}
+
 export function SplashScreen() {
   const [done, setDone] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -108,7 +119,13 @@ export function SplashScreen() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      onPointerDown={() => skipRef.current()}
+      onPointerDown={() => {
+        // The splash leaves on touch-down, so the click that follows the same tap would land on
+        // whatever is now under the finger (on the home screen: a starter prompt, which sends a
+        // message). That click belongs to the skip: swallow it once.
+        swallowNextClick();
+        skipRef.current();
+      }}
       className="splash fixed inset-0 z-[100] grid cursor-pointer place-items-center bg-background"
     >
       <canvas ref={canvasRef} className="absolute inset-0 size-full" />
