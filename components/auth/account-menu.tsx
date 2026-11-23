@@ -54,7 +54,9 @@ export function AccountMenu() {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        {/* Red, like other leave/remove actions. */}
         <DropdownMenuItem
+          variant="destructive"
           disabled={isSigningOut}
           onClick={() => startSignOut(() => signOut())}
           className="h-10 rounded-xl px-2.5 text-[0.95rem]"
