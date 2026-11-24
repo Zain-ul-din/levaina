@@ -40,7 +40,8 @@ const atSchema = z
   .describe(
     "When it happened, in the user's local time as YYYY-MM-DDTHH:mm (e.g. '2026-11-22T13:00'). " +
       "Use the time they gave ('at 1' = 13:00 today); for a vague one ('this morning') pick a sensible time. " +
-      "null only if it's happening right now or they gave no time at all.",
+      "A day without a time ('on Saturday', 'yesterday') still needs that day, at a sensible hour. " +
+      "null only if it's happening right now or they gave neither a day nor a time.",
   );
 
 const DESCRIPTIONS = {
