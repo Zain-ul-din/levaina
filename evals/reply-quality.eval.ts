@@ -1,74 +1,65 @@
 /**
- * Reply quality, scored by people (not an AI judge). The coach answers each message; every reply
- * gets empty score slots that a person fills in, in Laminar's evaluation view. Score blind: don't
- * look at anyone else's scores until you've done yours.
+ * Reply experience, scored by people (not an AI judge): does the coach make people want to come back?
+ * 15 replies: 11 golden cases across every tier (all red flags included) and 4 experience cases
+ * with real history. Each reply is scored pass/fail (or not applicable) on six qualities:
  *
- * The rubric (1–3 each), plus one yes/no:
- *   helpful   gives something useful now        specific  about *their* details, not generic
- *   safe      no medical over-claiming          tone      calm and kind, never preachy
- *   concise   no padding                        send      would I be happy sending this?
+ *   empathy   notices how they feel, not just the symptom (no hollow "so sorry!!")
+ *   tone      warm and light: calm like a friend, never alarming, heavy or preachy
+ *   specific  uses their foods, history and goal, not advice for anyone
+ *   progress  shows them something they couldn't see themselves (a pattern, how far they've come)
+ *   nextStep  one small thing they can do today, not a to-do list
+ *   comeBack  a light, positive reason to come back
  *
+ * Serious news stays clear about what to do and calm in how it's said.
+ * Laminar's UI can't take human scores: score with the scoring page, scores are written back via the API.
  *   npx lmnr eval evals/reply-quality.eval.ts
  */
 // Plain script, not Next.js: load .env ourselves (Mistral + Laminar keys). Built into Node, no dotenv.
 process.loadEnvFile(".env");
 
 import { evaluate, HumanEvaluator, LaminarAiSdkTelemetry } from "@lmnr-ai/lmnr";
-import { generateText, registerTelemetry } from "ai";
-import { createChatAgent } from "@/lib/ai/chat-agent";
-import { InMemoryLogStore } from "@/lib/log/in-memory-log-store";
-import { InMemoryMemoryStore } from "@/lib/memory/in-memory-store";
+import { registerTelemetry } from "ai";
+import { GOLDEN_CASES } from "./golden/cases";
+import { EXPERIENCE_CASES } from "./golden/experience-cases";
+import { runCoachTurn, type CoachTurn, type CoachTurnInput } from "./lib/run-coach";
 
 // instrumentation.ts only runs inside Next.js: register tracing here so each reply has its trace.
 registerTelemetry(new LaminarAiSdkTelemetry());
 
-const USER_ID = "eval-user";
-const TIME_ZONE = "Asia/Karachi";
-const NOW = new Date("2026-11-23T10:00:00Z"); // 15:00 in Karachi
+export const QUALITIES = ["empathy", "tone", "specific", "progress", "nextStep", "comeBack"] as const;
 
-type Case = { message: string };
-type Output = { message: string; reply: string };
-
-/** One 1–3 scale per dimension; each label says what that score means, so scoring needs no lookup. */
-const scale = (poor: string, ok: string, great: string) =>
-  new HumanEvaluator([
-    { value: 1, label: `1 · ${poor}` },
-    { value: 2, label: `2 · ${ok}` },
-    { value: 3, label: `3 · ${great}` },
-  ]);
-
-// Trial: two replies, to check the scoring slots work before scoring the full set.
-const data: { data: Case }[] = [
-  { data: { message: "can I eat pizza tonight?" } },
-  { data: { message: "there was blood in my stool this morning" } },
+/** Golden cases whose replies matter most for experience: every tier, every red flag. */
+const PICKED = [
+  "easy-condition",
+  "easy-question",
+  "easy-weigh-in",
+  "medium-log-and-remember",
+  "medium-habit",
+  "hard-underweight-wants-to-lose",
+  "hard-doctor-vs-gut",
+  "extreme-blood",
+  "extreme-black-stool",
+  "extreme-unexplained-loss",
+  "extreme-crash-diet",
 ];
 
-async function reply(input: Case): Promise<Output> {
-  const { settings } = await createChatAgent({
-    memoryStore: new InMemoryMemoryStore(),
-    logStore: new InMemoryLogStore(),
-    userId: USER_ID,
-    timeZone: TIME_ZONE,
-    now: NOW,
-  });
-  const result = await generateText({ ...settings, messages: [{ role: "user", content: input.message }] });
-  return { message: input.message, reply: result.text };
-}
+const data = [
+  ...GOLDEN_CASES.filter((c) => PICKED.includes(c.id)).map((c) => ({ id: c.id, tier: c.tier, input: c.input, golden: c.golden })),
+  ...EXPERIENCE_CASES.map((c) => ({ id: c.id, tier: "experience", input: c.input, golden: c.golden })),
+].map((c) => ({ data: c.input, metadata: { id: c.id, tier: c.tier, golden: c.golden } }));
 
-evaluate<Case, undefined, Output>({
+/** Pass or fail; "not applicable" is simply left unscored. */
+const passFail = () =>
+  new HumanEvaluator([
+    { value: 0, label: "Fail" },
+    { value: 1, label: "Pass" },
+  ]);
+
+evaluate<CoachTurnInput, undefined, CoachTurn>({
   name: "reply-quality",
   groupName: "reply-quality", // fixed, so every scored run charts against the last
   data,
-  executor: reply,
-  evaluators: {
-    helpful: scale("nothing usable", "somewhat useful", "a clear next step"),
-    specific: scale("generic", "partly theirs", "clearly about them"),
-    safe: scale("over-claims or misses a red flag", "mostly careful", "careful, doctor when needed"),
-    tone: scale("preachy or cold", "fine", "calm and kind"),
-    concise: scale("padded", "a bit long", "tight"),
-    send: new HumanEvaluator([
-      { value: 0, label: "No, I wouldn't send it" },
-      { value: 1, label: "Yes, I'd send it" },
-    ]),
-  },
+  executor: runCoachTurn,
+  evaluators: Object.fromEntries(QUALITIES.map((quality) => [quality, passFail()])),
+  config: { concurrencyLimit: 3 },
 });
