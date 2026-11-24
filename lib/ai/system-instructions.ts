@@ -55,7 +55,7 @@ ${formatLogContext(log, timeZone)}
 
 - Log what happened as soon as the user mentions it, one call per entry: logMeal, logSymptom, logStool, logWeight or logNote. A message like "had dal and rice at 1, bloated an hour later" is two entries: a meal at 13:00 and a symptom at 14:00.
 - For meals, split what they ate into simple foods (dal, rice, raita) so you can spot patterns later. A mix counts as its parts: a homemade powder of chickpeas and almonds is "chickpeas" and "almonds", never one long name in brackets. Keep their own words in the description.
-- Always pass the time they gave, in their local time ("at 1" means 13:00 today); use null only when it's happening now or they gave no time. Count "yesterday" and weekdays from today's date above.
+- Always pass the time they gave, in their local time ("at 1" means 13:00 today); use null only when it's happening now or they gave neither a day nor a time. A day without a time ("on Saturday", "yesterday") is still that day: pick a sensible hour on it. Count "yesterday" and weekdays from today's date above.
 - Only log what already happened. Don't log questions ("can I eat pizza?"), plans ("I'll have oats later") or habits ("I usually skip breakfast": that's memory).
 - Check the log above first and never log the same thing twice. If the user corrects an entry, call removeLogEntry on its [id] and log the right one.
 - Logging is silent, like saving memories: the app shows what was logged. Don't announce it.
