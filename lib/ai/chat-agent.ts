@@ -2,6 +2,8 @@ import { model } from "@/lib/ai/models";
 import { buildSystemInstructions } from "@/lib/ai/system-instructions";
 import { createLogTools } from "@/lib/ai/tools/log-tools";
 import { createMemoryTools } from "@/lib/ai/tools/memory-tools";
+import { createResearchTools } from "@/lib/ai/tools/research-tools";
+import { getResearchSearch, type ResearchSearch } from "@/lib/research/exa-search";
 import { traced, type TraceContext } from "@/lib/ai/telemetry";
 import { loadLogContext, type LogContext } from "@/lib/log/log-context";
 import type { LogStore } from "@/lib/log/log-store";
@@ -15,6 +17,8 @@ const MAX_STEPS = 6;
 type ChatAgentOptions = {
   memoryStore: MemoryStore;
   logStore: LogStore;
+  /** Research search: the Exa search by default (when EXA_API_KEY is set), null to switch it off. */
+  researchSearch?: ResearchSearch | null;
   userId: string;
   timeZone: string;
   now?: Date;
@@ -40,6 +44,7 @@ export async function createChatAgent({
   now = new Date(),
   conversationSummary = null,
   trace,
+  researchSearch = getResearchSearch(),
   ...options
 }: ChatAgentOptions) {
   const [memories, log] = await Promise.all([
@@ -49,6 +54,7 @@ export async function createChatAgent({
   const tools = {
     ...createMemoryTools({ store: memoryStore, userId }),
     ...createLogTools({ store: logStore, userId, timeZone, now }),
+    ...(researchSearch ? createResearchTools({ search: researchSearch }) : {}),
   };
 
   return {
@@ -57,7 +63,7 @@ export async function createChatAgent({
     tools,
     settings: {
       model,
-      instructions: buildSystemInstructions({ now, timeZone, memories, log, conversationSummary }),
+      instructions: buildSystemInstructions({ now, timeZone, memories, log, conversationSummary, canSearchResearch: Boolean(researchSearch) }),
       tools,
       stopWhen: isStepCount(MAX_STEPS),
       // Large 4 always reasons; "low" caps it. On the coach eval (Nov 2026) low kept 24/24 and cut the
