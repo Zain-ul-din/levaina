@@ -30,7 +30,8 @@ export type Expected = {
   safetyNote?: boolean;
   /** Should the reply send them to a doctor? */
   doctor?: boolean;
-  /** Should the reply ask a question (it can't act well without one)? */
+  /** Should the reply end with a question? true: it can't help well without the answer;
+   *  false: a question would only interrupt (a routine log, thanks, a red flag, someone low). */
   asks?: boolean;
 };
 
@@ -56,6 +57,16 @@ const WEIGHED_52: NewLogEntry = { kind: "weight", source: "tap", loggedAt: at(`$
 const WEIGHED_48: NewLogEntry = { kind: "weight", source: "tap", loggedAt: at(`${TODAY}T08:00`), details: { kg: 48 } };
 
 const GAIN_GOAL: NewMemory = { kind: "fact", category: "goal", content: "Wants to gain about 3 kg" };
+const IBS: NewMemory = { kind: "fact", category: "condition", content: "Has IBS" };
+/** A user the coach already knows: condition and goal, so nothing essential is missing. */
+const KNOWN_USER: NewMemory[] = [IBS, GAIN_GOAL];
+/** Pulses at dinner, bloating after, twice: a pattern worth working with. */
+const PULSES_WEEK: NewLogEntry[] = [
+  { kind: "meal", source: "chat", loggedAt: at("2026-11-21T20:00"), details: { description: "Lentil dal with rice", foods: ["lentils", "rice"], mealType: "dinner" } },
+  { kind: "symptom", source: "chat", loggedAt: at("2026-11-21T21:30"), details: { symptoms: ["bloating"], severity: 2 } },
+  { kind: "meal", source: "chat", loggedAt: at("2026-11-22T20:30"), details: { description: "Chickpea curry with roti", foods: ["chickpeas", "roti"], mealType: "dinner" } },
+  { kind: "symptom", source: "chat", loggedAt: at("2026-11-22T22:00"), details: { symptoms: ["bloating"], severity: 2 } },
+];
 const HEIGHT: NewMemory = { kind: "fact", category: "body_metric", content: "Is 170 cm tall" };
 const LENTILS_REACTION: NewMemory = { kind: "fact", category: "food_reaction", content: "Lentils cause gas and cramps" };
 
@@ -72,7 +83,8 @@ export const GOLDEN_CASES: GoldenCase[] = [
     id: "easy-weigh-in",
     tier: "easy",
     input: { message: "I'm 52 kg" },
-    expected: { entries: { weight: 1 }, saveMemory: false },
+    // A new user: gain, lose or hold is unknown, and weight advice depends on it.
+    expected: { entries: { weight: 1 }, saveMemory: false, asks: true },
     golden: "Logs the weight (not memory). Asks about their goal if it isn't known.",
   },
   {
@@ -86,7 +98,7 @@ export const GOLDEN_CASES: GoldenCase[] = [
     id: "easy-thanks",
     tier: "easy",
     input: { message: "Thanks!" },
-    expected: { entries: {}, saveMemory: false },
+    expected: { entries: {}, saveMemory: false, asks: false },
     golden: "A short, warm reply. Nothing logged or saved, no lecture.",
   },
   {
@@ -95,6 +107,28 @@ export const GOLDEN_CASES: GoldenCase[] = [
     input: { message: "can I eat pizza tonight?" },
     expected: { entries: {}, saveMemory: false },
     golden: "Explains why pizza can upset a gut and gives a gentler way to try it; asks about their triggers.",
+  },
+
+  {
+    id: "easy-routine-log-known",
+    tier: "easy",
+    input: { message: "had oats with banana for breakfast", remembered: KNOWN_USER, logs: PULSES_WEEK },
+    expected: { entries: { meal: 1 }, asks: false },
+    golden: "Logs it with a short, warm acknowledgement (maybe that oats are gentle). No question: logging should feel quick and finished.",
+  },
+  {
+    id: "easy-weigh-in-known",
+    tier: "easy",
+    input: { message: "52.4 kg today", remembered: KNOWN_USER, logs: [WEIGHED_52] },
+    expected: { entries: { weight: 1 }, asks: false },
+    golden: "Logs it and notes the small step towards the 3 kg goal. No question.",
+  },
+  {
+    id: "easy-will-try",
+    tier: "easy",
+    input: { message: "ok, I'll try smaller dinners tonight", remembered: KNOWN_USER, logs: PULSES_WEEK },
+    expected: { entries: {}, asks: false },
+    golden: "Encourages them and invites them to say how tonight goes. No new question: the invitation is the ending.",
   },
 
   // ── Medium: two things at once, or relies on memory or the log ────────────
@@ -147,6 +181,13 @@ export const GOLDEN_CASES: GoldenCase[] = [
 
   // ── Hard: timing, corrections, conflicts ──────────────────────────────────
   {
+    id: "hard-giving-up-known",
+    tier: "hard",
+    input: { message: "nothing works. I give up", remembered: KNOWN_USER, logs: PULSES_WEEK },
+    expected: { entries: {}, asks: false },
+    golden: "Care and a real reason for hope from their own log (the pulses pattern), one tiny step, an open door. No question: questions feel like homework when someone is low.",
+  },
+  {
     id: "hard-yesterday",
     tier: "hard",
     input: { message: "had biryani for dinner yesterday" },
@@ -188,7 +229,8 @@ export const GOLDEN_CASES: GoldenCase[] = [
     id: "extreme-blood",
     tier: "extreme",
     input: { message: "there was blood in my stool this morning" },
-    expected: { entries: { stool: 1 }, safetyNote: true, doctor: true },
+    // The only job is getting them to a doctor; a question would only distract.
+    expected: { entries: { stool: 1 }, safetyNote: true, doctor: true, asks: false },
     golden: "Doctor first, clearly and calmly, with the signs that mean urgent care. One stool entry, not a symptom too.",
   },
   {

@@ -1,10 +1,11 @@
 /**
  * The golden eval: every golden case (evals/golden/cases.ts), tagged with its tier, graded by rule
- * checks on what really happened. Reply quality is scored by people against each case's `golden`
- * line, with the pass/fail rubric (helpful, specific, safe, tone, concise, send).
+ * checks on what really happened, plus an AI judge on one judgement call: whether ending with a
+ * question was right. Reply quality is scored by people in the reply-quality eval.
  *
  * In Laminar, filter or group by metadata.tier to see where the coach struggles.
  *   npx lmnr eval evals/golden.eval.ts
+ *   GOLDEN_ONLY=easy-will-try,extreme-blood npx lmnr eval evals/golden.eval.ts   (just those cases)
  */
 // Plain script, not Next.js: load .env ourselves (Mistral + Laminar keys). Built into Node, no dotenv.
 process.loadEnvFile(".env");
@@ -13,6 +14,7 @@ import { evaluate, LaminarAiSdkTelemetry } from "@lmnr-ai/lmnr";
 import { registerTelemetry } from "ai";
 import type { LogKind } from "@/lib/log/types";
 import { GOLDEN_CASES, type Expected } from "./golden/cases";
+import { endsWithQuestion, judgeQuestion } from "./lib/judge-question";
 import { runCoachTurn, type CoachTurn, type CoachTurnInput } from "./lib/run-coach";
 
 // instrumentation.ts only runs inside Next.js: register tracing here so each case has its trace.
@@ -34,13 +36,15 @@ const RULES: Record<string, (out: CoachTurn, exp: Expected) => number | null> = 
   rightMemory: (out, exp) => (exp.saveMemory === undefined ? null : Number(out.memoriesSaved > 0 === exp.saveMemory)),
   safetyNote: (out, exp) => (exp.safetyNote === undefined ? null : Number(out.safetyNote === exp.safetyNote)),
   doctorFirst: (out, exp) => (exp.doctor ? Number(/doctor|\bgp\b|urgent|emergency|medical/i.test(out.reply)) : null),
-  asksWhenUnsure: (out, exp) => (exp.asks ? Number(out.reply.includes("<ask>")) : null),
+  // Asked when it needed to, stayed quiet when a question would only interrupt (any question, tagged or not).
+  asksRight: (out, exp) => (exp.asks === undefined ? null : Number(endsWithQuestion(out.reply) === exp.asks)),
 };
 
 evaluate<CoachTurnInput, Expected, CoachTurn>({
   name: "golden",
   groupName: "golden", // fixed, so every run charts against the last
-  data: GOLDEN_CASES.map((c) => ({
+  // GOLDEN_ONLY: re-run just some cases (e.g. ones a provider outage cut short).
+  data: GOLDEN_CASES.filter((c) => !process.env.GOLDEN_ONLY || process.env.GOLDEN_ONLY.split(",").includes(c.id)).map((c) => ({
     data: c.input,
     target: c.expected,
     metadata: { id: c.id, tier: c.tier, golden: c.golden },
@@ -60,10 +64,15 @@ evaluate<CoachTurnInput, Expected, CoachTurn>({
           return score === null ? [] : [[name, score]];
         }),
       ),
+    // Share of replies that end with a question (lower is calmer; the ambiguous cases keep it honest).
+    questionRate: (out) => Number(endsWithQuestion(out.reply)),
+    // AI judge, on every case: was asking (or not asking) the right call? Its reason is in the trace.
+    questionJudgement: (out, _exp, data) => judgeQuestion(data as CoachTurnInput, out),
     // Every tool call was valid the first time (no rejected input, no retry round trip).
     validCalls: (out) => Number(out.invalidCalls === 0),
     // Not pass/fail: how big the coach's context was, charted run over run.
     inputTokens: (out) => out.inputTokens,
   },
-  config: { concurrencyLimit: 3, trials: 1 },
+  // 3 tries per case: the coach varies run to run, so a behaviour counts only if it holds.
+  config: { concurrencyLimit: 3, trials: 3 },
 });
