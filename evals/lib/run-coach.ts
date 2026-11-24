@@ -34,6 +34,8 @@ export type CoachTurn = {
   safetyNote: boolean;
   /** Tool calls rejected for invalid input (the model then has to retry). */
   invalidCalls: number;
+  /** Research searches made this turn: the query sent out, and how many results came back. */
+  searches: { query: string; results: number }[];
   inputTokens: number;
   reply: string;
 };
@@ -84,6 +86,12 @@ export async function runCoachTurn(input: CoachTurnInput): Promise<CoachTurn> {
     memoriesSaved: memories.length - (input.remembered?.length ?? 0),
     safetyNote: results.some((r) => typeof r.output === "object" && r.output !== null && "safetyNote" in r.output),
     invalidCalls: calls.filter((call) => "invalid" in call && call.invalid).length,
+    searches: results
+      .filter((r) => r.toolName === "searchResearch")
+      .map((r) => ({
+        query: String((r.input as { query?: string }).query ?? ""),
+        results: typeof r.output === "object" && r.output !== null && "results" in r.output ? (r.output.results as unknown[]).length : 0,
+      })),
     inputTokens: result.usage.inputTokens ?? 0, // v7: usage is the sum of every step
     reply: result.text,
   };

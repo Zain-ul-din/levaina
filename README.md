@@ -21,17 +21,21 @@ Most diet apps count calories and most gut apps track symptoms. Levaina does bot
 
 ## What it does
 
-- **Coaches in plain language.** Asks what it needs to know, then gives a short, practical plan for your weight goal that avoids what upsets your gut.
+- **Coaches with care.** Every reply starts with how you're feeling, gives one small thing to try today, and invites you back to say how it went. It only asks a question when the answer would change its advice.
 - **Logs as you talk.** Say "had dal and rice, bloated an hour later" and the coach records the meal and the symptom. Or tap to log meals, symptoms, stool and weight yourself.
 - **Remembers what matters.** Conditions, doctor's advice, food reactions and goals carry over to every conversation. You can see all of it, and remove anything that's wrong.
 - **Reads your log.** The coach looks at your recent days to connect what you ate with how you felt.
+- **Checks the research.** Ask whether a supplement or a new study holds up, and the coach looks it up on trusted medical sources and tells you where the answer comes from.
+- **Calm about serious things.** Warning signs like blood in the stool get clear advice to see a doctor, said gently, never alarmingly.
 - **No passwords.** Sign in with a 6-digit code sent to your email.
 - **Feels calm.** Light and dark themes, soft motion, sheets you can swipe away, and full respect for reduced-motion settings.
 
 ## How it's built
 
 - **Next.js 16** (App Router) and **React 19**, written in TypeScript
-- **Vercel AI SDK** streaming replies from **Mistral Large**, with tool calls for logging and memory
+- **Vercel AI SDK** streaming replies from **Mistral Large**, with tool calls for logging, memory and research
+- **Exa** for research lookups, limited to medical research and public-health sites
+- **Laminar** for tracing every model call and running evals
 - **Supabase**: Postgres with row-level security on every table, and email-code auth
 - **Tailwind CSS v4** and **Base UI**, with Phosphor icons
 
@@ -41,6 +45,9 @@ Some choices worth a look:
 - **Memory keeps its history.** Facts and dated episodes are kept apart, and a corrected fact is marked as replaced rather than overwritten.
 - **Every user's data is walled off in the database itself**, not only in the app.
 - **The interface is measured, not eyeballed.** Contrast, alignment, tap targets and motion are checked in a real browser across phone and desktop, light and dark.
+- **The coach is tested like code.** A golden set of real situations, from "had dal at 1" to blood in the stool, sorted by difficulty, is run against the coach whenever its instructions change, three times each because models vary.
+- **People define "good", then machines check it.** Replies are scored by hand for care, tone and accuracy first. An AI judge takes over a check only after its verdicts and reasons hold up against those human scores.
+- **Research can't leak or wander.** Searches only reach trusted medical sites, and queries never include anything personal, such as your weight or your story.
 
 ## Run it locally
 
@@ -53,6 +60,8 @@ pnpm dev
 ```
 
 Set your Mistral API key and the local Supabase URL and keys as environment variables, then open http://localhost:3000. Sign-in codes arrive in the local Supabase mail inbox.
+
+Two keys are optional: an Exa key turns on research lookups, and a Laminar project key turns on tracing and lets you run the evals with `npx lmnr eval`.
 
 ---
 

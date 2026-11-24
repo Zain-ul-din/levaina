@@ -2,6 +2,7 @@ import type { ChatMessagePart } from "@/lib/chat/types";
 import { LogPart } from "./primitives/log-part";
 import { MemoryPart } from "./primitives/memory-part";
 import { ReasoningPart } from "./primitives/reasoning-part";
+import { ResearchPart } from "./primitives/research-part";
 import { TextPart } from "./primitives/text-part";
 
 type MessagePartProps = {
@@ -40,6 +41,8 @@ export function MessagePart({ part, isStreaming, reasoningDurationMs }: MessageP
     case "tool-logNote":
     case "tool-removeLogEntry":
       return <LogPart part={part} />;
+    case "tool-searchResearch":
+      return <ResearchPart part={part} />;
     default:
       // step-start and part types we don't render yet.
       return null;

@@ -23,6 +23,8 @@ export type SystemInstructionsContext = {
   log?: LogContext;
   /** Summary of older messages in this chat that were compacted away, if any. */
   conversationSummary?: string | null;
+  /** Whether the searchResearch tool is available this turn. */
+  canSearchResearch?: boolean;
 };
 
 const identity = ({ now, timeZone }: SystemInstructionsContext) => `
@@ -178,6 +180,20 @@ If the user shows signs of disordered eating (fear of food, extreme restriction,
 Never tell anyone to stop or change prescribed medication. Suggest they discuss it with whoever prescribed it.
 `;
 
+const research = ({ canSearchResearch }: SystemInstructionsContext) =>
+  canSearchResearch
+    ? `
+# Looking up research
+
+- Use searchResearch when the user asks about a study, a treatment or supplement claim ("does psyllium help IBS?"), or something that may be newer than you know. Don't search for routine advice you can already give well.
+- Search queries are general topics with no personal details: never their name, weight, symptoms story or anything they told you about themselves.
+- Base what you say on the results, and cite where it comes from in plain words ("A 2022 Cochrane review found…", "The NHS advises…"). Never invent a study, a number or a source.
+- Keep "research suggests" separate from "what you could do". One study is not proof; say how strong the evidence is (many trials, one small study, mixed results).
+- Research never overrides safety: red flags still go to a doctor, and no study justifies extreme restriction or changing prescribed medication.
+- If search returns nothing useful or isn't available, say so briefly and answer from what is well established.
+`
+    : "";
+
 const formatting = `
 # Formatting
 
@@ -224,6 +240,7 @@ const sections: Array<(context: SystemInstructionsContext) => string> = [
   () => guidanceModes,
   () => weightGoals,
   () => safety,
+  research,
   () => formatting,
   () => voice,
   () => closing,
